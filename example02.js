@@ -7,7 +7,9 @@ var board = new firmata.Board("/dev/ttyACM0", function(){
 
     console.log("Connecting to Arduino");
     console.log("Acctiovation of Pin 13");
+    console.log("Acctiovation of Pin 12");
     board.pinMode(13, board.MODES.OUTPUT);
+    board.pinMode(12, board.MODES.OUTPUT);
 });
 
 function handler(req, res) {
@@ -31,6 +33,12 @@ io.sockets.on("connection", function(socket) {
     }
     if (commandNo == "0") {
       board.digitalWrite(13, board.LOW);
+    }
+    if (commandNo == "3") {
+        board.digitalWrite(12, board.HIGH);
+    }
+    if (commandNo == "2") {
+      board.digitalWrite(12, board.LOW);
     }
   });
 });

@@ -5,8 +5,10 @@
     <title>Example with buttons</title>
   </head>
   <body>
-    <button id="buttonOn" onclick="on()">On</button>
-    <button id="buttonOff" onclick="off()">Off</button>
+    <button id="buttonOn1" onclick="Greenon()">Green On</button>
+    <button id="buttonOff1" onclick="Greenoff()">Green Off</button>
+    <button id="buttonOn2" onclick="Blueon()">Blue On</button>
+    <button id="buttonOff2" onclick="Blueoff()">Blue Off</button>
 
     <br>
 
@@ -15,15 +17,23 @@
 
     var socket = io.connect("192.168.1.134:8080");
 
-    function on() {
+    function Greenon() {
       socket.emit("commandToArduino", 1);
     }
 
-    function off() {
+    function Greenoff() {
       socket.emit("commandToArduino", 0)
+    }
+
+    function Blueon() {
+      socket.emit("commandToArduino", 3);
+    }
+
+    function Blueoff() {
+      socket.emit("commandToArduino", 2)
     }
     </script>
 
   </body>
-  
+
 </html>

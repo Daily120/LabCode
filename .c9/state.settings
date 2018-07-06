@@ -1,7 +1,4 @@
 {
-    "breakpoints": {
-        "json()": []
-    },
     "console": {
         "@expanded": true,
         "@height": "153",
@@ -9,9 +6,8 @@
         "json()": {
             "meta": {
                 "accessList": [
-                    "tab0",
-                    "tab8",
                     "tab3",
+                    "tab0",
                     "tab1"
                 ]
             },
@@ -26,10 +22,10 @@
                     ],
                     "document": {
                         "filter": true,
-                        "title": "bash - \"root@ubuntud16-P5W-DH-Deluxe: ~/c9sdk/dmitri\"",
-                        "tooltip": "bash - \"root@ubuntud16-P5W-DH-Deluxe: ~/c9sdk/dmitri\"",
+                        "title": "bash - \"root@ubuntud16-P5W-DH-Deluxe: ~/dmitri\"",
+                        "tooltip": "bash - \"root@ubuntud16-P5W-DH-Deluxe: ~/dmitri\"",
                         "terminal": {
-                            "id": "devel_362",
+                            "id": "devel_569",
                             "cwd": "",
                             "width": 0,
                             "height": 0,
@@ -48,12 +44,10 @@
                     "type": "tab",
                     "name": "tab1",
                     "path": "",
-                    "className": [
-                        "tab1"
-                    ],
+                    "className": [],
                     "document": {
                         "filter": true,
-                        "title": "Immediate (Javascript (browser))",
+                        "title": "Immediate",
                         "tooltip": "Immediate (Javascript (browser))",
                         "immediate": {
                             "folds": [],
@@ -94,50 +88,20 @@
                     "name": "tab3",
                     "path": "",
                     "className": [
-                        "tab3"
+                        "tab3",
+                        "running",
+                        "focus"
                     ],
                     "document": {
                         "changed": false,
                         "meta": {
-                            "timestamp": 1530873478071
-                        },
-                        "filter": true,
-                        "title": "example01.js - Idle",
-                        "tooltip": "example01.js - Idle",
-                        "output": {
-                            "id": "output531890",
-                            "width": 943,
-                            "height": 127,
-                            "config": {
-                                "runner": "Node.js",
-                                "command": "example01.js",
-                                "toolbar": true,
-                                "debug": true,
-                                "name": ""
-                            }
-                        }
-                    },
-                    "editorType": "output",
-                    "active": false
-                },
-                {
-                    "type": "tab",
-                    "name": "tab8",
-                    "path": "",
-                    "className": [
-                        "tab8",
-                        "running"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "timestamp": 1530875955451
+                            "timestamp": 1530876910783
                         },
                         "filter": true,
                         "title": "example02.js - Running",
                         "tooltip": "example02.js - Running",
                         "output": {
-                            "id": "output413680",
+                            "id": "output528860",
                             "width": 943,
                             "height": 127,
                             "config": {
@@ -147,9 +111,9 @@
                                 "debug": true
                             },
                             "running": {
-                                "pid": 6775,
-                                "name": "output413680",
-                                "running": 2,
+                                "pid": 7610,
+                                "name": "output528860",
+                                "running": 0,
                                 "runner": [
                                     {
                                         "cmd": [
@@ -196,19 +160,15 @@
         "counters": {
             "@ace": 1,
             "@acestatus": 1,
-            "@datagrid": 1,
             "@divider": 5,
-            "@document": 9,
+            "@document": 4,
             "@form": 5,
-            "@immediate": 1,
-            "@menu": 8,
-            "@menuitem": 19,
+            "@menu": 5,
+            "@menuitem": 13,
             "@pane": 2,
-            "@preferences": 1,
-            "@session": 7,
-            "@tab": 9,
-            "@tree": 2,
-            "@undoManager": 9
+            "@session": 2,
+            "@tab": 4,
+            "@undoManager": 4
         }
     },
     "findinfiles": {
@@ -226,8 +186,8 @@
     },
     "panecycle": {
         "json()": [
-            "tab7",
-            "tab8"
+            "tab3",
+            "tab2"
         ]
     },
     "panels": {
@@ -265,16 +225,11 @@
             ]
         }
     },
-    "recentfiles": {
-        "json()": []
-    },
     "tabs": {
         "json()": {
             "focus": "/example02.js",
             "meta": {
                 "accessList": [
-                    "tab7",
-                    "tab5",
                     "tab2"
                 ]
             },
@@ -283,55 +238,15 @@
                 {
                     "type": "tab",
                     "name": "tab2",
-                    "path": "/example01.js",
-                    "className": [
-                        "tab2"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "timestamp": 1530874049091
-                        },
-                        "filter": true,
-                        "title": "example01.js",
-                        "tooltip": "/example01.js",
-                        "ace": {}
-                    },
-                    "editorType": "ace",
-                    "active": false
-                },
-                {
-                    "type": "tab",
-                    "name": "tab5",
-                    "path": "/example02.html",
-                    "className": [
-                        "tab5"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "timestamp": 1530875923175
-                        },
-                        "filter": true,
-                        "title": "example02.html",
-                        "tooltip": "/example02.html",
-                        "ace": {}
-                    },
-                    "editorType": "ace",
-                    "active": false
-                },
-                {
-                    "type": "tab",
-                    "name": "tab7",
                     "path": "/example02.js",
                     "className": [
-                        "tab7",
+                        "tab2",
                         "focus"
                     ],
                     "document": {
                         "changed": false,
                         "meta": {
-                            "timestamp": 1530875459138
+                            "timestamp": 1530876996429
                         },
                         "filter": true,
                         "title": "example02.js",
