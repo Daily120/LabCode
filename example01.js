@@ -8,8 +8,9 @@ var board = new firmata.Board("/dev/ttyACM0", function() {
 
 http.createServer(function(req, res){
   var parts = req.url.split("/"),
-  operator1= parseInt(parts[1],10);
+  operator1 = parseInt(parts[1],10);
   operator2 = parseInt(parts[2],10);
+
 
   if(operator1 == 0 && operator2 == 0) {
     board.digitalWrite(13, board.LOW);

@@ -1,0 +1,355 @@
+{
+    "breakpoints": {
+        "json()": []
+    },
+    "console": {
+        "@expanded": true,
+        "@height": "153",
+        "@maximized": "false",
+        "json()": {
+            "meta": {
+                "accessList": [
+                    "tab0",
+                    "tab8",
+                    "tab3",
+                    "tab1"
+                ]
+            },
+            "name": "pane1",
+            "nodes": [
+                {
+                    "type": "tab",
+                    "name": "tab0",
+                    "path": "",
+                    "className": [
+                        "tab0"
+                    ],
+                    "document": {
+                        "filter": true,
+                        "title": "bash - \"root@ubuntud16-P5W-DH-Deluxe: ~/c9sdk/dmitri\"",
+                        "tooltip": "bash - \"root@ubuntud16-P5W-DH-Deluxe: ~/c9sdk/dmitri\"",
+                        "terminal": {
+                            "id": "devel_362",
+                            "cwd": "",
+                            "width": 0,
+                            "height": 0,
+                            "scrollTop": -1
+                        },
+                        "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+                        "meta": {
+                            "timestamp": 1530873458754
+                        },
+                        "changed": false
+                    },
+                    "editorType": "terminal",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab1",
+                    "path": "",
+                    "className": [
+                        "tab1"
+                    ],
+                    "document": {
+                        "filter": true,
+                        "title": "Immediate (Javascript (browser))",
+                        "tooltip": "Immediate (Javascript (browser))",
+                        "immediate": {
+                            "folds": [],
+                            "scrolltop": 0,
+                            "scrollleft": 0,
+                            "selection": {
+                                "start": {
+                                    "row": 2,
+                                    "column": 0
+                                },
+                                "end": {
+                                    "row": 2,
+                                    "column": 0
+                                },
+                                "isBackwards": false
+                            },
+                            "options": {
+                                "guessTabSize": true,
+                                "useWrapMode": false,
+                                "wrapToView": true
+                            },
+                            "firstLineState": 0,
+                            "type": "jsbrowser",
+                            "history": [],
+                            "pos": 0
+                        },
+                        "hash": "bc37e9908b413249fe666f189265c03143e4d841",
+                        "meta": {
+                            "timestamp": 1530873458763
+                        },
+                        "changed": false
+                    },
+                    "editorType": "immediate",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab3",
+                    "path": "",
+                    "className": [
+                        "tab3"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1530873478071
+                        },
+                        "filter": true,
+                        "title": "example01.js - Idle",
+                        "tooltip": "example01.js - Idle",
+                        "output": {
+                            "id": "output531890",
+                            "width": 943,
+                            "height": 127,
+                            "config": {
+                                "runner": "Node.js",
+                                "command": "example01.js",
+                                "toolbar": true,
+                                "debug": true,
+                                "name": ""
+                            }
+                        }
+                    },
+                    "editorType": "output",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab8",
+                    "path": "",
+                    "className": [
+                        "tab8",
+                        "running"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1530875955451
+                        },
+                        "filter": true,
+                        "title": "example02.js - Running",
+                        "tooltip": "example02.js - Running",
+                        "output": {
+                            "id": "output413680",
+                            "width": 943,
+                            "height": 127,
+                            "config": {
+                                "runner": "Node.js",
+                                "command": "example02.js",
+                                "toolbar": true,
+                                "debug": true
+                            },
+                            "running": {
+                                "pid": 6775,
+                                "name": "output413680",
+                                "running": 2,
+                                "runner": [
+                                    {
+                                        "cmd": [
+                                            "node",
+                                            "${debug?--nocrankshaft}",
+                                            "${debug?--nolazy}",
+                                            "${debug?`node --version | grep -vqE \"v0\\..\\.\" && echo --nodead_code_elimination`}",
+                                            "${debug?--debug-brk=15454}",
+                                            "$file",
+                                            "$args"
+                                        ],
+                                        "debugger": "v8",
+                                        "debugport": 15454,
+                                        "selector": "source.js",
+                                        "caption": "Node.js",
+                                        "$builtin": true
+                                    }
+                                ],
+                                "debug": true
+                            }
+                        }
+                    },
+                    "editorType": "output",
+                    "active": true
+                }
+            ],
+            "skin": "editor_tab",
+            "skinset": "default",
+            "type": "pane"
+        }
+    },
+    "experiments": {
+        "@@enabled": true,
+        "@autosave": 0,
+        "@flat-dark": 0,
+        "@git": 1,
+        "@go_completion": 0,
+        "@plugin-manager": 1,
+        "@plugins": 0,
+        "@sdk": 0,
+        "@test": 0
+    },
+    "ext": {
+        "counters": {
+            "@ace": 1,
+            "@acestatus": 1,
+            "@datagrid": 1,
+            "@divider": 5,
+            "@document": 9,
+            "@form": 5,
+            "@immediate": 1,
+            "@menu": 8,
+            "@menuitem": 19,
+            "@pane": 2,
+            "@preferences": 1,
+            "@session": 7,
+            "@tab": 9,
+            "@tree": 2,
+            "@undoManager": 9
+        }
+    },
+    "findinfiles": {
+        "@console": "true",
+        "@matchcase": "false",
+        "@regex": "false",
+        "@scope": "selection",
+        "@wholeword": "false"
+    },
+    "menus": {
+        "@minimized": "false"
+    },
+    "nak": {
+        "@installed": true
+    },
+    "panecycle": {
+        "json()": [
+            "tab7",
+            "tab8"
+        ]
+    },
+    "panels": {
+        "@active-left": "tree",
+        "commands.panel": {
+            "@enabled": "true",
+            "@name": "commands.panel"
+        },
+        "debugger": {
+            "@enabled": "true",
+            "@name": "debugger"
+        },
+        "navigate": {
+            "@enabled": "true",
+            "@name": "navigate"
+        },
+        "outline": {
+            "@enabled": "true",
+            "@name": "outline"
+        },
+        "scm": {
+            "@enabled": "true",
+            "@name": "scm"
+        },
+        "tree": {
+            "@enabled": "true",
+            "@name": "tree"
+        }
+    },
+    "projecttree": {
+        "@showfs": true,
+        "expanded": {
+            "json()": [
+                "/"
+            ]
+        }
+    },
+    "recentfiles": {
+        "json()": []
+    },
+    "tabs": {
+        "json()": {
+            "focus": "/example02.js",
+            "meta": {
+                "accessList": [
+                    "tab7",
+                    "tab5",
+                    "tab2"
+                ]
+            },
+            "name": "pane0",
+            "nodes": [
+                {
+                    "type": "tab",
+                    "name": "tab2",
+                    "path": "/example01.js",
+                    "className": [
+                        "tab2"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1530874049091
+                        },
+                        "filter": true,
+                        "title": "example01.js",
+                        "tooltip": "/example01.js",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab5",
+                    "path": "/example02.html",
+                    "className": [
+                        "tab5"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1530875923175
+                        },
+                        "filter": true,
+                        "title": "example02.html",
+                        "tooltip": "/example02.html",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab7",
+                    "path": "/example02.js",
+                    "className": [
+                        "tab7",
+                        "focus"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1530875459138
+                        },
+                        "filter": true,
+                        "title": "example02.js",
+                        "tooltip": "/example02.js",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": true
+                }
+            ],
+            "skin": "editor_tab",
+            "skinset": "default",
+            "type": "pane"
+        }
+    },
+    "tree_selection": {
+        "json()": [
+            "/example02.js"
+        ]
+    }
+}
