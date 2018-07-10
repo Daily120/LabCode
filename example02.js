@@ -6,8 +6,8 @@ var firmata = require("firmata");
 var board = new firmata.Board("/dev/ttyACM0", function(){
 
     console.log("Connecting to Arduino");
-    console.log("Acctiovation of Pin 13");
-    console.log("Acctiovation of Pin 12");
+    console.log("Acctivation of Pin 13");
+    console.log("Acctivation of Pin 12");
     board.pinMode(13, board.MODES.OUTPUT);
     board.pinMode(12, board.MODES.OUTPUT);
 });
