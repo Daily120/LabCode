@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <title>Example with buttons</title>
+  </head>
+  <body>
+    <button id="buttonOn1" onclick="GreenonDmitri()">Green On Dmitri</button>
+    <button id="buttonOff1" onclick="GreenoffDmitri()">Green Off Dmitri</button>
+    <button id="buttonOn2" onclick="BlueonDmitri()">Blue On Dmitri</button>
+    <button id="buttonOff2" onclick="BlueoffDmitri()">Blue Off Dmitri</button>
+    <button id="buttonOn3" onclick="GreenonUlya()">Green On Ulya</button>
+    <button id="buttonOff3" onclick="GreenoffUlya()">Green Off Ulya</button>
+    <button id="buttonOn4" onclick="BlueonUlya()">Blue On Ulya</button>
+    <button id="buttonOff4" onclick="BlueoffUlya()">Blue Off Ulya</button>
+    <button id="buttonOn5" onclick="AllOn()">All On</button>
+    <button id="buttonOff5" onclick="AllOff()">All Off</button>
+
+    <br>
+
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+
+    var socketDmitri = io.connect("192.168.1.134:8080");
+    var socketUlya = io.connect("192.168.1.100:8080");
+
+    function GreenonDmitri() {
+      socketDmitri.emit("commandToArduino", 1);
+    }
+
+    function GreenoffDmitri() {
+      socketDmitri.emit("commandToArduino", 0)
+    }
+
+    function BlueonDmitri() {
+      socketDmitri.emit("commandToArduino", 3);
+    }
+
+    function BlueoffDmitri() {
+      socketDmitri.emit("commandToArduino", 2)
+    }
+
+    function GreenonUlya() {
+      socketUlya.emit("commandToArduino", 1);
+    }
+
+    function GreenoffUlya() {
+      socketUlya.emit("commandToArduino", 0)
+    }
+
+    function BlueonUlya() {
+      socketUlya.emit("commandToArduino", 3);
+    }
+
+    function BlueoffUlya() {
+      socketUlya.emit("commandToArduino", 2)
+    }
+
+    function AllOn() {
+      socketUlya.emit("commandToArduino", 5)
+      socketDmitri.emit("commandToArduino", 5)
+    }
+
+    function AllOff() {
+      socketUlya.emit("commandToArduino", 4)
+      socketDmitri.emit("commandToArduino", 4)
+    </script>
+
+  </body>
+
+</html>
