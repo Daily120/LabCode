@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <title>Example with physical button</title>
+  </head>
+    <body>
+      <div>Server conected, board is ready.</div>
+      <div>Press HW pushbutton</div>
+      <div id="print1"></div>
+
+      <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+      <script type="text/javascript">
+      "use strict";
+
+      var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
+      var socket = io.connect("192.168.1.134:8080");
+
+      function log(msg) {
+      divElement.innerHTML += "<div>" + msg + "</div>"; // we print it to div
+      }
+
+      socket.on("messageToClient", function (msg){
+          log(msg); // add msg
+      });
+
+      socket.on("disconnect", function(){
+          log("Disconnected from the server"); // we print status of disconn. to div
+      });
+
+      </script>
+
+    </body>
+
+</html>
