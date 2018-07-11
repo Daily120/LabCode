@@ -13,7 +13,7 @@ var board = new firmata.Board("/dev/ttyACM0", function(){
 });
 
 function handler(req, res) {
-  fs.readFile(__dirname + "/example03.html",
+  fs.readFile(__dirname + "/example04.html",
   function(err, data)  {
     if (err) {
         res.writeHea(500, {"Content-Type": "text/plain"});
