@@ -27,6 +27,25 @@ function handler(req, res) {
 http.listen(8080);
 
 io.sockets.on("connection", function(socket) {
+  // print of IP adresses, ports, ip family
+  clientIpAddress = socket.request.socket.remoteAddress;
+  io.sockets.emit("messageToClient", "socket.request.socket.remoteAddress: " + socket.request.socket.remoteAddress);
+
+  // print of IP adresses, ports, ip family
+  clientIpAddress = socket.request.socket.remoteAddress;
+  io.sockets.emit("messageToClient", "socket.request.socket.remoteAddress: " + socket.request.socket.remoteAddress);
+
+  // ::ffff:192.168.254.1 is ipv6 address
+  io.sockets.emit("messageToClient", "socket.request.connection._peername.family: " + socket.request.connection._peername.family);
+  io.sockets.emit("messageToClient", "socket.request.connection._peername.port: " + socket.request.connection._peername.port);
+  io.sockets.emit("messageToClient", "socket.id: " + socket.id);
+  // extract ipv4 address ->
+  var idx = clientIpAddress.lastIndexOf(':');
+  var address4;
+  if (~idx && ~clientIpAddress.indexOf('.')) address4 = clientIpAddress.slice(idx + 1);
+  io.sockets.emit("messageToClient", "ipv4 address: " + socket.request.socket.remoteAddress);
+  io.sockets.emit("messageToClient", "Client data ----------------------------->");
+  
   var timeout = false;
   var last_value = -1;
   var last_sent = -1;
