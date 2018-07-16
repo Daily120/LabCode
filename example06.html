@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <title>Example with physical button</title>
+  </head>
+    <body>
+      <div>Server conected, board is ready.</div>
+      <div>Press HW pushbutton</div>
+      <div id="print1"></div>
+
+      <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+      <script type="text/javascript">
+      "use strict";
+      var numberOfLinesBeforeScroll = 10;
+      var linesPrintCounter = 0;
+
+      var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
+      var socket = io.connect("192.168.1.134:8080");
+
+      function log(msg) {
+        var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
+        var textnode=document.createTextNode(linesPrintCounter + " | " + msg); // we create element with the text adding the counter
+        node.appendChild(textnode); // adding text to "node", i.e. table row
+        divElement.insertBefore(node, divElement.childNodes[0]); // inserting into variable node
+        if (linesPrintCounter > numberOfLinesBeforeScroll-1) { // if the lines are more than limit -> start with scroll
+          divElement.removeChild(divElement.childNodes[numberOfLinesBeforeScroll]); // we remove the oldest printout
+        }
+        linesPrintCounter++; // increasing the number of printouts
+      }
+
+      socket.on("messageToClient", function (msg){
+          log(msg); // add msg
+      });
+
+      socket.on("disconnect", function(){
+          log("Disconnected from the server"); // we print status of disconn. to div
+      });
+
+      </script>
+
+    </body>
+
+</html>
