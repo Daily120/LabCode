@@ -7,6 +7,9 @@
     <body>
       <div>Server conected, board is ready.</div>
       <div>Press HW pushbutton</div>
+      <div>
+        <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+      </div>
       <div id="print1"></div>
 
       <script type="text/javascript" src="/socket.io/socket.io.js"></script>
@@ -22,6 +25,18 @@
       }
 
       socket.on("messageToClient", function (msg){
+          var canvas1 = document.getElementById("canvas1");
+          var ctx1 = canvas1.getContext("2d");
+
+          if (msg == "Value = 1"){
+            ctx1.fillStyle = "red";
+            ctx1.fillRect(0, 0, canvas1.width, canvas1.height);
+          }
+          else {
+            ctx1.fillStyle = "green";
+            ctx1.fillRect(0, 0, canvas1.width, canvas1.height);
+          }
+          
           log(msg); // add msg
       });
 
