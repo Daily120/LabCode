@@ -9,6 +9,7 @@ var board = new firmata.Board("/dev/ttyACM0", function(){
   console.log("Enabling Push Button on pin 2");
   board.pinMode(2, board.MODES.INPUT);
   board.pinMode(13, board.MODES.OUTPUT);
+  board.pinMode(12, board.MODES.OUTPUT);
 });
 
 function handler(req, res) {
@@ -40,11 +41,13 @@ io.sockets.on("connection", function(socket) {
         if (value == 0) {
           console.log("LED OFF");
           board.digitalWrite(13, board.LOW);
+          board.digitalWrite(12, board.LOW);
           console.log("Value = 0");
         }
         if (value == 1) {
           console.log("LED ON");
           board.digitalWrite(13, board.HIGH);
+          board.digitalWrite(12, board.HIGH);
           console.log("Value = 1");
         }
         socket.emit("messageToClient", "Value = " + value);
