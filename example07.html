@@ -2,11 +2,14 @@
 <meta charset="utf-8">
 <html>
   <head>
-    <title>Example with physical button</title>
+    <title>Example with potentialmetter</title>
   </head>
-    <body>
+    <body onload="load()">
       <div>Server conected, board is ready.</div>
       <div>Press HW pushbutton</div>
+      <div>
+        <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+      </div>
       <div id="print1"></div>
 
       <script type="text/javascript" src="/socket.io/socket.io.js"></script>
@@ -15,6 +18,12 @@
       "use strict";
       var numberOfLinesBeforeScroll = 20;
       var linesPrintCounter = 0;
+
+      var potValue1 = 0; // value of the first potentiometer
+      var x1 = new Array(); // array for x1
+      var y1 = new Array(); // array for y1
+      var canvas1;
+      var ctx1;
 
       var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
       var socket = io.connect("192.168.1.134:8080");
@@ -30,11 +39,42 @@
         linesPrintCounter++; // increasing the number of printouts
       }
 
+      function load() {
+        canvas1 = document.getElementById("canvas1");
+        ctx1 = canvas1.getContext("2d");
+
+        // initialization of graph with points
+        ctx1.lineWidth = "1";
+        ctx1.strokeStyle = "#ff0000";
+
+        // draw first time series initialization
+        for (var i=0; i<200; i++) {
+          x1[i] = i; // for x values are 0, 1, 2, ...
+          y1[i] = 0; // for y values are 0
+        };
+      };
+
       socket.on("messageToClient", function (msg){
           log(msg); // add msg
       });
 
       socket.on("clientReadValues", function(value) {
+          potValue1 = value.desiredValue;
+
+          // Draw graph *****************************************
+
+          ctx1.lineWidth = "1";
+          ctx1.strokeStyle = "#ff0000";
+          ctx1.clearRect(0, 0, canvas1.width, canvas1.height); // clear the canvas
+          ctx1.beginPath(); // to start drawing new line
+          y1.splice(0, 1); // on the position 0 in the field y1 we erase one value
+          y1[199] = potValue1; // new value is added at the end
+          for (var i=0; i<200; i++) {
+            ctx1.lineTo(x1[i], (100 - (y1[i] / 1023) * 100)); // 0,0 x,y coordinate is in upper left corner
+          };
+          ctx1.stroke(); // to draw the line
+          // End of draw graph***********************************
+
           log(value.desiredValue);
       });
 
