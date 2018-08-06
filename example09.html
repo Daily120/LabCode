@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<meta charset = utf8>
+<html>
+<head>
+    <title>Example with graph</title>
+</head>
+
+<body>
+
+PWM: <input id="pwm" value=100 />
+<button id="buttonSendPWM" onClick="sendPWM()">Set PWM</button>
+<button id="buttonLeft" onClick="left()">Left</button>
+<button id="buttonRight" onClick="right()">Right</button>
+<button id="buttonStop" onClick="stop()">Stop</button>
+
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+<script type="text/javascript">
+var socket = io.connect("192.168.1.134:8080");
+function sendPWM () {
+    valuePWM = document.getElementById("pwm").value;
+    socket.emit("sendPWM", valuePWM);
+}
+function left () {
+    socket.emit("left", 1);
+}
+function right() {
+    socket.emit("right", 0);
+}
+function stop() {
+    socket.emit("stop", 0);
+}
+</script>
+
+
+</body>
+
+</html>
