@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<meta charset = utf8>
+<html>
+<head>
+    <title>Example with DC Motor and potentiometer</title>
+</head>
+
+<body>
+
+<button id="buttonLeft" onClick="left()">Left</button>
+<button id="buttonRight" onClick="right()">Right</button>
+<button id="buttonControl" onClick="control()">Start</button>
+
+<div id="print1"></div>
+
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+<script type="text/javascript">
+var socket = io.connect("192.168.1.134:8080");
+function sendPWM (speed) {
+    //valuePWM = document.getElementById("pwm").value;
+    if (speed < 512){
+      left();
+      socket.emit("sendPWM", 255 - Math.round(speed/2 - 0.1));
+    } else {
+      right();
+      socket.emit("sendPWM", (speed - 511.5) / 2); //max value of potentionmeter is 1024. Max value of the speed is 255.
+    }
+}
+function left () {
+    socket.emit("left", 1);
+}
+function right() {
+    socket.emit("right", 0);
+}
+function control() {
+    if(!isStoped){
+        isStoped = true;
+        socket.emit("stop", 0);
+        var button = document.getElementById("buttonControl");
+        button.innerHTML = "Start";
+    } else {
+        var button = document.getElementById("buttonControl");
+        isStoped = false;
+        button.innerHTML = "Stop";
+    }
+}
+
+var potValue1 = 0; // value of the first potentiometer
+
+var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
+var numberOfLinesBeforeScroll = 20;
+var linesPrintCounter = 0;
+
+var isStoped = true;
+
+function log(msg) {
+    var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
+    var textnode=document.createTextNode(linesPrintCounter + " | " + msg); // we create element with the text adding the counter
+    node.appendChild(textnode); // adding text to "node", i.e. table row
+    divElement.insertBefore(node, divElement.childNodes[0]); // inserting into variable node
+    if (linesPrintCounter > numberOfLinesBeforeScroll-1) { // if the lines are more than limit -> start with scroll
+        divElement.removeChild(divElement.childNodes[numberOfLinesBeforeScroll]); // we remove the oldest printout
+    }
+    linesPrintCounter++; // increasing the number of printouts
+}
+
+socket.on("messageToClient", function (msg){
+    log(msg); // add msg
+});
+
+socket.on("clientReadValues", function(value) {
+    if(!isStoped){
+        sendPWM(value.desiredValue);
+        log(value.desiredValue);
+    }
+});
+
+socket.on("disconnect", function(){
+    log("Disconnected from the server"); // we print status of disconn. to div
+});
+</script>
+
+</body>
+
+</html>
