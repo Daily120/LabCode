@@ -6,10 +6,14 @@
   </head>
     <body onload="load()">
       <div>Server conected, board is ready.</div>
-      <div>Press HW pushbutton</div>
       <div>
         <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
       </div>
+
+      <button id="buttonStartControlAlgorithm" onClick="startControlAlgorithm()">Start Ctrl Alg</button>
+      <button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm()">Stop Ctrl Alg</button>
+
+      <div>desiredValue | actualValue | Difference | PWM</div>
       <div id="print1"></div>
 
       <script type="text/javascript" src="/socket.io/socket.io.js"></script>
@@ -99,13 +103,21 @@
 
           ctx1.stroke(); // to draw the line
           // Draw second graph graph END ************************************
-             
-          log(potValue1 + "|" + potValue2)
+
+          log(potValue1 + "|" + potValue2 + "|" + (potValue1 - potValue2) + "|" + (value.pwm).toFixed(0) ); // log to div
       });
 
       socket.on("disconnect", function(){
           log("Disconnected from the server"); // we print status of disconn. to div
       });
+
+      function startControlAlgorithm () {
+          socket.emit("startControlAlgorithm");
+      }
+
+      function stopControlAlgorithm () {
+          socket.emit("stopControlAlgorithm");
+      }
 
       </script>
 
