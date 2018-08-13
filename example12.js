@@ -82,11 +82,15 @@ function controlAlgorithm () {
     dErr = err - lastErr; // difference of error
     pwm = Kp*err + Ki*errSum + Kd*dErr;
     lastErr = err; // save the value for the next cycle
-    if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive
-    if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
-    if (pwm > 0) {board.digitalWrite(2,0);};
-    if (pwm < 0) {board.digitalWrite(2,1);};
-    board.analogWrite(3, Math.abs(pwm));
+    if((actualValue > 90 && actualValue < 900) || (desiredValue > 90 && desiredValue < 900)) {
+        if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive
+        if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
+        if (pwm > 0) {board.digitalWrite(2,0);};
+        if (pwm < 0) {board.digitalWrite(2,1);};
+        board.analogWrite(3, Math.abs(pwm));
+    } else {
+      stopControlAlgorithm();
+    }
 };
 
 function startControlAlgorithm () {
