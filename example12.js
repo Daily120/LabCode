@@ -60,16 +60,32 @@ function sendValues (socket) {
 };
 
 //DC-Motor Position Algorithm
-var factor = 1.25; // proportional factor that determines the speed of aproaching toward desired value
+var factor = 0.1; // proportional factor that determines the speed of aproaching toward desired value
 var controlAlgorihtmStartedFlag = 0; // flag in global scope to see weather ctrlAlg has been started
 var intervalCtrl; // var for setInterval in global space
 
+// PID Algorithm variables
+var Kp = 0.55; // proportional factor
+var Ki = 0.008; // integral factor
+var Kd = 0.15; // differential factor
+var pwm = 0;
+var pwmLimit = 254;
+
+var err = 0; // variable for second pid implementation
+var errSum = 0; // sum of errors
+var dErr = 0; // difference of error
+var lastErr = 0; // to keep the value of previous error
+
 function controlAlgorithm () {
-    pwm = factor*(desiredValue-actualValue);
-    if(pwm > 255) {pwm = 255}; // to limit the value for pwm / positive
-    if(pwm < -255) {pwm = -255}; // to limit the value for pwm / negative
-    if (pwm > 0) {board.digitalWrite(2,0); board.digitalWrite(4,1);}; // določimo smer če je > 0
-    if (pwm < 0) {board.digitalWrite(2,1); board.digitalWrite(4,0);}; // določimo smer če je < 0
+    err = desiredValue - actualValue; // error
+    errSum += err; // sum of errors, like integral
+    dErr = err - lastErr; // difference of error
+    pwm = Kp*err + Ki*errSum + Kd*dErr;
+    lastErr = err; // save the value for the next cycle
+    if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive
+    if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
+    if (pwm > 0) {board.digitalWrite(2,0);};
+    if (pwm < 0) {board.digitalWrite(2,1);};
     board.analogWrite(3, Math.abs(pwm));
 };
 
