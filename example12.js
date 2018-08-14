@@ -26,6 +26,11 @@ function handler(req, res) {
   })
 }
 
+//Controlling algorithms with buttons
+var sendValueViaSocket = function() {}; // function to send message over socket
+var sendStaticMsgViaSocket = function() {}; // function to send static message over socket
+//End of Controlling algorithms with buttons
+
 var desiredValue = 0;
 var actualValue = 0; // variable for seccond potentiometer
 http.listen(8080);
@@ -38,15 +43,25 @@ io.sockets.on("connection", function(socket) {
       actualValue = value; // continuous read of pin A1
   });
 
-  socket.on("startControlAlgorithm", function(){
-      startControlAlgorithm();
+  socket.on("startControlAlgorithm", function(parameters){
+      startControlAlgorithm(parameters);
   });
 
   socket.on("stopControlAlgorithm", function(){
       stopControlAlgorithm();
   });
 
+  sendValueViaSocket = function(value) {
+      io.sockets.emit("messageToClient", value);
+  }
+
+  sendStaticMsgViaSocket = function (value) {
+    io.sockets.emit("staticMsgToClient", value);
+  }
+
   socket.emit("messageToClient", "Server connected, board ready.");
+  socket.emit("staticMsgToClient", "Server connected, board ready.");
+
   setInterval(sendValues, 40, socket); // na 40ms we send message to client
 });
 
@@ -76,27 +91,48 @@ var errSum = 0; // sum of errors
 var dErr = 0; // difference of error
 var lastErr = 0; // to keep the value of previous error
 
-function controlAlgorithm () {
-    err = desiredValue - actualValue; // error
-    errSum += err; // sum of errors, like integral
-    dErr = err - lastErr; // difference of error
-    pwm = Kp*err + Ki*errSum + Kd*dErr;
-    lastErr = err; // save the value for the next cycle
-    if((actualValue > 90 && actualValue < 900) || (desiredValue > 90 && desiredValue < 900)) {
-        if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive
-        if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
-        if (pwm > 0) {board.digitalWrite(2,0);};
-        if (pwm < 0) {board.digitalWrite(2,1);};
-        board.analogWrite(3, Math.abs(pwm));
-    } else {
-      stopControlAlgorithm();
+var globalparameters = {};
+
+function controlAlgorithm (parameters) {
+    switch (parameters.ctrlAlgNo) {
+      case 1 : {
+          pwm = parameters.pCoeff*(desiredValue-actualValue);
+          //if((actualValue > 90 && actualValue < 900) || (desiredValue > 90 && desiredValue < 900)) {
+              if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive
+              if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
+              if (pwm > 0) {board.digitalWrite(2,0);};
+              if (pwm < 0) {board.digitalWrite(2,1);};
+              board.analogWrite(3, Math.abs(pwm));
+          //} else {
+          //  stopControlAlgorithm();
+          //}
+          break;
+      }
+      case 2:
+          err = desiredValue - actualValue; // error
+          errSum += err; // sum of errors, like integral
+          dErr = err - lastErr; // difference of error
+          pwm = parameters.Kp1*err + parameters.Ki1*errSum + parameters.Kd1*dErr;
+          lastErr = err; // save the value for the next cycle
+          if((actualValue > 90 && actualValue < 900) || (desiredValue > 90 && desiredValue < 900)) {
+              if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive
+              if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
+              if (pwm > 0) {board.digitalWrite(2,0);};
+              if (pwm < 0) {board.digitalWrite(2,1);};
+              board.analogWrite(3, Math.abs(pwm));
+          } else {
+            stopControlAlgorithm();
+          }
+          break;
     }
 };
 
-function startControlAlgorithm () {
+function startControlAlgorithm (parameters) {
     if (controlAlgorihtmStartedFlag == 0) {
         controlAlgorihtmStartedFlag = 1; // set flag that the algorithm has started
-        intervalCtrl = setInterval(function() {controlAlgorithm(); }, 30);
+        globalparameters = parameters;
+        intervalCtrl = setInterval(() => controlAlgorithm(globalparameters), 30);
+        sendStaticMsgViaSocket("Control algorithm " + parameters.ctrlAlgNo + " started | " + JSON.stringify(parameters));
         console.log("Control algorithm started");
     }
 };
@@ -105,4 +141,5 @@ function stopControlAlgorithm () {
     clearInterval(intervalCtrl); // clear the interval of control algorihtm
     board.analogWrite(3,0); // write 0 on pwm pin to stop the motor
     controlAlgorihtmStartedFlag = 0; // set flag that the algorithm has stopped
+    sendStaticMsgViaSocket("Stop");
 };

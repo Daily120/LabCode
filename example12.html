@@ -10,8 +10,17 @@
         <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
       </div>
 
-      <button id="buttonStartControlAlgorithm" onClick="startControlAlgorithm()">Start Ctrl Alg</button>
+      pCoeff: <input id="pCoeff" value="0.1" size="5" />
+      <button id="buttonStartControlAlgorithm1" onClick="startControlAlgorithm(1)">Start Ctrl Alg1</button>
+      <br>
+      Kp: <input id="Kp1" value="0.15" size="5" />
+      Ki: <input id="Ki1" value="0.0055" size="5" />
+      Kd: <input id="Kd1" value="0.25" size="5" />
+      <button id="buttonStartControlAlgorithm2" onClick="startControlAlgorithm(2)">Start Ctrl Alg2</button>
       <button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm()">Stop Ctrl Alg</button>
+      <br>
+      <div id="divForStaticPrint"> </div>
+      <br>
 
       <div>desiredValue | actualValue | Difference | PWM</div>
       <div id="print1"></div>
@@ -72,6 +81,10 @@
           log(msg); // add msg
       });
 
+      socket.on('staticMsgToClient', function(msg) { // when we receive the message
+          document.getElementById("divForStaticPrint").innerHTML = "Status: " + msg; // we print it to div
+      });
+
       socket.on("clientReadValues", function(value) {
           potValue1 = value.desiredValue;
           potValue2 = value.actualValue;
@@ -111,8 +124,23 @@
           log("Disconnected from the server"); // we print status of disconn. to div
       });
 
-      function startControlAlgorithm () {
-          socket.emit("startControlAlgorithm");
+      function startControlAlgorithm (algorithmId) {
+          // first stop ctrlAlg, just in case
+          stopControlAlgorithm ();
+
+          var pCoeff = document.getElementById("pCoeff").value;
+          var Kp1 = document.getElementById("Kp1").value;
+          var Ki1 = document.getElementById("Ki1").value;
+          var Kd1 = document.getElementById("Kd1").value;
+
+          switch (algorithmId) {
+              case 1 :
+                  socket.emit("startControlAlgorithm", {"ctrlAlgNo": 1, "pCoeff": pCoeff}); // send pCoeff value
+                  break;
+              case 2:
+                  socket.emit("startControlAlgorithm", {"ctrlAlgNo": 2, "Kp1": Kp1, "Ki1": Ki1, "Kd1": Kd1}); // send also parameters
+                  break;
+          }
       }
 
       function stopControlAlgorithm () {
