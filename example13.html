@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <title>Example with potentialmetter</title>
+  </head>
+    <body onload="load()">
+      <div>Server conected, board is ready.</div>
+      <div>
+        <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+      </div>
+
+      pCoeff: <input id="pCoeff" value="0.1" size="5" />
+      <button id="buttonStartControlAlgorithm1" onClick="startControlAlgorithm(1)">Start Ctrl Alg1</button>
+      <br>
+      Kp: <input id="Kp1" value="0.15" size="5" />
+      Ki: <input id="Ki1" value="0.0055" size="5" />
+      Kd: <input id="Kd1" value="0.25" size="5" />
+      <button id="buttonStartControlAlgorithm2" onClick="startControlAlgorithm(2)">Start Ctrl Alg2</button>
+      <button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm()">Stop Ctrl Alg</button>
+      <br>
+      <div id="divForStaticPrint"> </div>
+      <br>
+
+      <div>desiredValue | actualValue | Difference | PWM</div>
+      <div id="print1"></div>
+
+      <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+      <script type="text/javascript">
+      "use strict";
+      var numberOfLinesBeforeScroll = 20;
+      var linesPrintCounter = 0;
+
+      var potValue1 = 0; // value of the first potentiometer
+      var x1 = new Array(); // array for x1
+      var y1 = new Array(); // array for y1
+      var potValue2 = 0; // value of second potentiometer
+      var x2 = new Array(); // array for x2 variable
+      var y2 = new Array(); // array for y2 variable
+      var canvas1;
+      var ctx1;
+
+      var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
+      var socket = io.connect("192.168.1.134:8080");
+
+      function log(msg) {
+        var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
+        var textnode=document.createTextNode(linesPrintCounter + " | " + msg); // we create element with the text adding the counter
+        node.appendChild(textnode); // adding text to "node", i.e. table row
+        divElement.insertBefore(node, divElement.childNodes[0]); // inserting into variable node
+        if (linesPrintCounter > numberOfLinesBeforeScroll-1) { // if the lines are more than limit -> start with scroll
+          divElement.removeChild(divElement.childNodes[numberOfLinesBeforeScroll]); // we remove the oldest printout
+        }
+        linesPrintCounter++; // increasing the number of printouts
+      }
+
+      function load() {
+        canvas1 = document.getElementById("canvas1");
+        ctx1 = canvas1.getContext("2d");
+
+        // initialization of graph with points
+        ctx1.lineWidth = "1";
+        ctx1.strokeStyle = "#ff0000";
+
+        // draw first time series initialization
+        for (var i=0; i<200; i++) {
+          x1[i] = i; // for x values are 0, 1, 2, ...
+          y1[i] = 0; // for y values are 0
+        };
+
+        // initializaion of second graph
+        for (var i=0; i<200; i++) {
+          x2[i] = i;
+          y2[i] = 0;
+        };
+
+      };
+
+      socket.on("messageToClient", function (msg){
+          log(msg); // add msg
+      });
+
+      socket.on('staticMsgToClient', function(msg) { // when we receive the message
+          document.getElementById("divForStaticPrint").innerHTML = "Status: " + msg; // we print it to div
+      });
+
+      socket.on("clientReadValues", function(value) {
+          potValue1 = value.desiredValue;
+          potValue2 = value.actualValue;
+
+          // Draw graph *****************************************
+
+          ctx1.lineWidth = "1";
+          ctx1.strokeStyle = "#ff0000";
+          ctx1.clearRect(0, 0, canvas1.width, canvas1.height); // clear the canvas
+          ctx1.beginPath(); // to start drawing new line
+          y1.splice(0, 1); // on the position 0 in the field y1 we erase one value
+          y1[199] = potValue1; // new value is added at the end
+          for (var i=0; i<200; i++) {
+            ctx1.lineTo(x1[i], (100 - (y1[i] / 1023) * 100)); // 0,0 x,y coordinate is in upper left corner
+          };
+          ctx1.stroke(); // to draw the line
+          // End of draw graph***********************************
+
+          // Draw second graph **********************************************
+          ctx1.lineWidth = "1";
+          ctx1.strokeStyle = "#00ff00";
+          ctx1.beginPath(); // to start drawing new line
+          y2.splice(0, 1); // on the position 0 in the field y2 we erase one value
+          y2[199] = potValue2; // new value is added at the end
+
+          for (i=0; i<200; i++) {
+            ctx1.lineTo(x2[i], (100 - (y2[i] / 1023) * 100)); // 0,0 x,y coordinate is in upper left corner
+          };
+
+          ctx1.stroke(); // to draw the line
+          // Draw second graph graph END ************************************
+
+          log(potValue1 + "|" + potValue2 + "|" + (potValue1 - potValue2) + "|" + (value.pwm).toFixed(0) ); // log to div
+      });
+
+      socket.on("disconnect", function(){
+          log("Disconnected from the server"); // we print status of disconn. to div
+      });
+
+      function startControlAlgorithm (algorithmId) {
+          // first stop ctrlAlg, just in case
+          stopControlAlgorithm ();
+
+          var pCoeff = document.getElementById("pCoeff").value;
+          var Kp1 = document.getElementById("Kp1").value;
+          var Ki1 = document.getElementById("Ki1").value;
+          var Kd1 = document.getElementById("Kd1").value;
+
+          switch (algorithmId) {
+              case 1 :
+                  socket.emit("startControlAlgorithm", {"ctrlAlgNo": 1, "pCoeff": pCoeff}); // send pCoeff value
+                  break;
+              case 2:
+                  socket.emit("startControlAlgorithm", {"ctrlAlgNo": 2, "Kp1": Kp1, "Ki1": Ki1, "Kd1": Kd1}); // send also parameters
+                  break;
+          }
+      }
+
+      function stopControlAlgorithm () {
+          socket.emit("stopControlAlgorithm");
+      }
+
+      </script>
+
+    </body>
+
+</html>
