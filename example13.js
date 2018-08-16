@@ -2,7 +2,6 @@ var http = require("http").createServer(handler);
 var io = require("socket.io").listen(http);
 var fs = require("fs");
 var firmata = require("firmata");
-var pwm = 0; //for logging the speed of DC-Motor
 
 var board = new firmata.Board("/dev/ttyACM0", function(){
   console.log("Enabling analog Pin 0");
@@ -102,7 +101,7 @@ function controlAlgorithm (parameters) {
               if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
               if (pwm > 0) {board.digitalWrite(2,0);};
               if (pwm < 0) {board.digitalWrite(2,1);};
-              board.analogWrite(3, Math.abs(pwm));
+              board.analogWrite(3, Math.round(Math.abs(pwm)));
           //} else {
           //  stopControlAlgorithm();
           //}
@@ -119,7 +118,7 @@ function controlAlgorithm (parameters) {
               if(pwm < -pwmLimit) {pwm = -pwmLimit}; // to limit the value for pwm / negative
               if (pwm > 0) {board.digitalWrite(2,0);};
               if (pwm < 0) {board.digitalWrite(2,1);};
-              board.analogWrite(3, Math.abs(pwm));
+              board.analogWrite(3, Math.round(Math.abs(pwm)));
           } else {
             stopControlAlgorithm();
           }
