@@ -69,7 +69,10 @@ function sendValues (socket) {
   {
     "desiredValue": desiredValue,
     "actualValue": actualValue,
-    "pwm": pwm
+    "pwm": pwm,
+    "err": err,
+    "errSum": errSum,
+    "dErr": dErr
   });
 };
 

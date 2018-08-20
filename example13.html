@@ -8,10 +8,17 @@
         <div>Server conected, board is ready.</div>
         <div>
             <canvas id="potValuesCanvas" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+            <canvas id="errorCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
         </div>
         <br>
         <div>
             <canvas id="pwmCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+            <canvas id="integralCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+        </div>
+        <br>
+        <div>
+            <canvas id="emptyCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+            <canvas id="derivativeCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
         </div>
 
         pCoeff: <input id="pCoeff" value="0.1" size="5" />
@@ -116,6 +123,10 @@
         var potValue2 = 0; // value of the second potentiometer
         var potValuesGraph;
         var pwmGraph;
+        var errorGraph;
+        var integralGraph;
+        var emptyGraph;
+        var derivativeGraph;
         var pwm;
 
         var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
@@ -135,6 +146,10 @@
         function load() {
             potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["red", "green"], ["desired", "actual"], ["0", "200", "0", "1023"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
             pwmGraph = new Graph("pwmCanvas", 0, 200, -254, 254, ["orange"], ["PWM"], ["0", "200", "-254", "254"]);
+            emptyGraph = new Graph("emptyCanvas", 0, 200, -100, 100, ["red"], ["x"], ["0", "200", "-100", "100"]);
+            errorGraph = new Graph("errorCanvas", 0, 200, -1023, 1023, ["red"], ["Error"], ["0", "200", "-1023", "1023"]);
+            integralGraph = new Graph("integralCanvas", 0, 200, -10000, 10000, ["red"], ["Integ(Err*dt)"], ["0", "200", "-10000", "10000"]);
+            derivativeGraph = new Graph("derivativeCanvas", 0, 200, -150, 150, ["red"], ["dError/dt"], ["0", "200", "-150", "150"]);
         };
 
         socket.on("messageToClient", function (msg){
@@ -152,6 +167,18 @@
 
             potValuesGraph.plot([potValue1, potValue2]); // desired Vs actual graph
             pwmGraph.plot([pwm]); // plot pwm
+            // draw centerline in pwmGraph
+            pwmGraph.ctx.strokeStyle = "#add8e6";
+            pwmGraph.ctx.beginPath(); // draw centerline at 0
+            pwmGraph.ctx.lineTo(0, 50);
+            pwmGraph.ctx.lineTo(200, 50);
+            pwmGraph.ctx.stroke();
+
+            //emptyGraph.plot([value.KpE, value.KiIedt, value.KdDe_dt]);
+
+            errorGraph.plot([value.err]); // graph for P part
+            integralGraph.plot([value.errSum]); // graph for I part
+            derivativeGraph.plot([value.dErr]); // graph for D part
 
             log(potValue1 + "|" + potValue2 + "|" + (potValue1 - potValue2) + "|" + (value.pwm).toFixed(0) ); // log to div
         });
