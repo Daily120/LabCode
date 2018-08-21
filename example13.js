@@ -72,7 +72,10 @@ function sendValues (socket) {
     "pwm": pwm,
     "err": err,
     "errSum": errSum,
-    "dErr": dErr
+    "dErr": dErr,
+    "KpE": KpE,
+    "KiIedt": KiIedt,
+    "KdDe_dt": KdDe_dt
   });
 };
 
@@ -92,6 +95,9 @@ var err = 0; // variable for second pid implementation
 var errSum = 0; // sum of errors
 var dErr = 0; // difference of error
 var lastErr = 0; // to keep the value of previous error
+var KpE = 0; // multiplication of Kp x error
+var KiIedt = 0; // multiplication of Ki x integ. of error
+var KdDe_dt = 0; // multiplication of Kd x differential of err.
 
 var globalparameters = {};
 
@@ -114,7 +120,10 @@ function controlAlgorithm (parameters) {
           err = desiredValue - actualValue; // error
           errSum += err; // sum of errors, like integral
           dErr = err - lastErr; // difference of error
-          pwm = parameters.Kp1*err + parameters.Ki1*errSum + parameters.Kd1*dErr;
+          KpE = parameters.Kp1*err;
+          KiIedt = parameters.Ki1*errSum;
+          KdDe_dt = parameters.Kd1*dErr;
+          pwm = KpE + KiIedt + KdDe_dt; // PID expression
           lastErr = err; // save the value for the next cycle
           if((actualValue > 90 && actualValue < 900) || (desiredValue > 90 && desiredValue < 900)) {
               if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive

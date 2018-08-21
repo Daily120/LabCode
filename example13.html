@@ -17,7 +17,7 @@
         </div>
         <br>
         <div>
-            <canvas id="emptyCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+            <canvas id="comparationCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
             <canvas id="derivativeCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
         </div>
 
@@ -125,7 +125,7 @@
         var pwmGraph;
         var errorGraph;
         var integralGraph;
-        var emptyGraph;
+        var comparationGraph;
         var derivativeGraph;
         var pwm;
 
@@ -146,7 +146,7 @@
         function load() {
             potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["red", "green"], ["desired", "actual"], ["0", "200", "0", "1023"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
             pwmGraph = new Graph("pwmCanvas", 0, 200, -254, 254, ["orange"], ["PWM"], ["0", "200", "-254", "254"]);
-            emptyGraph = new Graph("emptyCanvas", 0, 200, -100, 100, ["red"], ["x"], ["0", "200", "-100", "100"]);
+            comparationGraph = new Graph("comparationCanvas", 0, 200, -100, 100, ["red", "green", "blue"], ["KpE", "KiIedt", "KdDe_dt"], ["0", "200", "-100", "100"]);
             errorGraph = new Graph("errorCanvas", 0, 200, -1023, 1023, ["red"], ["Error"], ["0", "200", "-1023", "1023"]);
             integralGraph = new Graph("integralCanvas", 0, 200, -10000, 10000, ["red"], ["Integ(Err*dt)"], ["0", "200", "-10000", "10000"]);
             derivativeGraph = new Graph("derivativeCanvas", 0, 200, -150, 150, ["red"], ["dError/dt"], ["0", "200", "-150", "150"]);
@@ -174,7 +174,7 @@
             pwmGraph.ctx.lineTo(200, 50);
             pwmGraph.ctx.stroke();
 
-            //emptyGraph.plot([value.KpE, value.KiIedt, value.KdDe_dt]);
+            comparationGraph.plot([value.KpE, value.KiIedt, value.KdDe_dt]);
 
             errorGraph.plot([value.err]); // graph for P part
             integralGraph.plot([value.errSum]); // graph for I part
