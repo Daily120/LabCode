@@ -9,6 +9,7 @@
         <div>
             <canvas id="potValuesCanvas" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
             <canvas id="errorCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+            <canvas id="performanceCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
         </div>
         <br>
         <div>
@@ -127,6 +128,7 @@
         var integralGraph;
         var comparationGraph;
         var derivativeGraph;
+        var performanceGraph;
         var pwm;
 
         var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
@@ -150,6 +152,7 @@
             errorGraph = new Graph("errorCanvas", 0, 200, -1023, 1023, ["red"], ["Error"], ["0", "200", "-1023", "1023"]);
             integralGraph = new Graph("integralCanvas", 0, 200, -10000, 10000, ["red"], ["Integ(Err*dt)"], ["0", "200", "-10000", "10000"]);
             derivativeGraph = new Graph("derivativeCanvas", 0, 200, -150, 150, ["red"], ["dError/dt"], ["0", "200", "-150", "150"]);
+            performanceGraph = new Graph("performanceCanvas", 0, 2000, 0, 500000, ["red"], ["Int(Abs(Error)dt)"], ["0", "2000", "0", "0.5M"]);
         };
 
         socket.on("messageToClient", function (msg){
@@ -179,6 +182,9 @@
             errorGraph.plot([value.err]); // graph for P part
             integralGraph.plot([value.errSum]); // graph for I part
             derivativeGraph.plot([value.dErr]); // graph for D part
+            
+            performanceGraph.plot([value.errSumAbs]); // graph for performance measure
+            performanceGraph.ctx.fillText(parseInt(value.errSumAbs),70,27);
 
             log(potValue1 + "|" + potValue2 + "|" + (potValue1 - potValue2) + "|" + (value.pwm).toFixed(0) ); // log to div
         });
