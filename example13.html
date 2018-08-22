@@ -24,7 +24,9 @@
         <br>
         <div>
             Position: <input id="position" value=200 />
+            Set Algorithm: <input id="algorithmId" value=1 />
             <button id="sendPosition" onClick="sendPosition()">Send position</button>
+            Pulse duration in s: <input id="pulseDuration" value="7" size="5" />
             <button id="pulse" onClick="pulse()">Send pulse</button>
             <button id="pulsetimed" onClick="pulseTimed()">Send pulse Timed</button>
             <button id="buttonStop" onClick="stop()">STOP</button>
@@ -226,6 +228,7 @@
 
         function sendPosition () {
             var positionValue = document.getElementById("position").value;
+            startControlAlgorithm(Number(document.getElementById("algorithmId").value));
             socket.emit("sendPosition", positionValue);
         }
 
@@ -233,18 +236,19 @@
             var positionInterval = 0;
 
             intervalPulseFunction = setInterval(function() {
-                if (positionInterval == 100) {
-                    positionInterval = 890;
+                if (positionInterval == 300) {
+                    positionInterval = 600;
                 } else {
-                    positionInterval = 100;
+                    positionInterval = 300;
                 }
                 socket.emit("sendPosition", positionInterval);
-            }, 2500);
+            }, 2000);
         }
 
         function stop () {
             document.getElementById("divForStaticPrint").innerHTML = document.getElementById("divForStaticPrint").innerHTML + " | C = " + performanceMeasure;
             clearInterval(intervalPulseFunction);
+            stopControlAlgorithm();
         }
 
         function stopControlAlgorithm () {
@@ -252,9 +256,10 @@
         }
 
         function pulseTimed () {
-            startControlAlgorithm(2);
+            startControlAlgorithm(Number(document.getElementById("algorithmId").value));
             pulse();
-            setTimeout(function() {performanceMeasure = y10[1999]; stop();}, 30000); // wait for 30s to get performance measure value out
+            var pulseDuration = document.getElementById("pulseDuration").value;
+            setTimeout(function() {stop();}, pulseDuration * 1000); //pulseDuration in seconds
         }
 
         </script>

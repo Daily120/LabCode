@@ -165,7 +165,7 @@ function stopControlAlgorithm (reasonOfStop) {
     reasonOfStop = typeof reasonOfStop  === 'undefined' ? "Stop" : reasonOfStop; //instead of default parameters in ES6
     clearInterval(intervalCtrl); // clear the interval of control algorihtm
     board.analogWrite(3,0); // write 0 on pwm pin to stop the motor
+    sendStaticMsgViaSocket(reasonOfStop + ";  Control algorithm " + globalparameters.ctrlAlgNo + " stopped | " + JSON.stringify(globalparameters) + " | errSumAbs = " + errSumAbs);
     controlAlgorihtmStartedFlag = 0; // set flag that the algorithm has stopped
-    sendStaticMsgViaSocket(reasonOfStop);
     errSumAbs = 0;
 };
