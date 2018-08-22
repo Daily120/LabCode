@@ -21,6 +21,15 @@
             <canvas id="comparationCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
             <canvas id="derivativeCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
         </div>
+        <br>
+        <div>
+            Position: <input id="position" value=200 />
+            <button id="sendPosition" onClick="sendPosition()">Send position</button>
+            <button id="pulse" onClick="pulse()">Send pulse</button>
+            <button id="pulsetimed" onClick="pulseTimed()">Send pulse Timed</button>
+            <button id="buttonStop" onClick="stop()">STOP</button>
+            <br>
+        </div>
 
         pCoeff: <input id="pCoeff" value="0.1" size="5" />
         <button id="buttonStartControlAlgorithm1" onClick="startControlAlgorithm(1)">Start Ctrl Alg1</button>
@@ -131,6 +140,9 @@
         var performanceGraph;
         var pwm;
 
+        var intervalPulseFunction;
+        var performanceMeasure = 0;
+
         var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
         var socket = io.connect("192.168.1.134:8080");
 
@@ -182,7 +194,7 @@
             errorGraph.plot([value.err]); // graph for P part
             integralGraph.plot([value.errSum]); // graph for I part
             derivativeGraph.plot([value.dErr]); // graph for D part
-            
+
             performanceGraph.plot([value.errSumAbs]); // graph for performance measure
             performanceGraph.ctx.fillText(parseInt(value.errSumAbs),70,27);
 
@@ -212,8 +224,37 @@
             }
         }
 
+        function sendPosition () {
+            var positionValue = document.getElementById("position").value;
+            socket.emit("sendPosition", positionValue);
+        }
+
+        function pulse() {
+            var positionInterval = 0;
+
+            intervalPulseFunction = setInterval(function() {
+                if (positionInterval == 100) {
+                    positionInterval = 890;
+                } else {
+                    positionInterval = 100;
+                }
+                socket.emit("sendPosition", positionInterval);
+            }, 2500);
+        }
+
+        function stop () {
+            document.getElementById("divForStaticPrint").innerHTML = document.getElementById("divForStaticPrint").innerHTML + " | C = " + performanceMeasure;
+            clearInterval(intervalPulseFunction);
+        }
+
         function stopControlAlgorithm () {
             socket.emit("stopControlAlgorithm");
+        }
+
+        function pulseTimed () {
+            startControlAlgorithm(2);
+            pulse();
+            setTimeout(function() {performanceMeasure = y10[1999]; stop();}, 30000); // wait for 30s to get performance measure value out
         }
 
         </script>

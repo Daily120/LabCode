@@ -36,7 +36,7 @@ http.listen(8080);
 
 io.sockets.on("connection", function(socket) {
   board.analogRead(0, function(value){
-      desiredValue = value; // continuous read of analog pin 0
+      if (readAnalogPin0Flag === 1) desiredValue = value; // continuous read of analog pin 0
   });
   board.analogRead(1, function(value) {
       actualValue = value; // continuous read of pin A1
@@ -44,6 +44,12 @@ io.sockets.on("connection", function(socket) {
 
   socket.on("startControlAlgorithm", function(parameters){
       startControlAlgorithm(parameters);
+  });
+
+  socket.on("sendPosition", function(position) {
+      readAnalogPin0Flag = 0; // we don't read from the analog pin anymore, value comes from GUI
+      desiredValue = position; // GUI takes control
+      socket.emit("messageToClient", "Position set to: " + position)
   });
 
   socket.on("stopControlAlgorithm", function(){
@@ -84,6 +90,8 @@ function sendValues (socket) {
 var factor = 0.1; // proportional factor that determines the speed of aproaching toward desired value
 var controlAlgorihtmStartedFlag = 0; // flag in global scope to see weather ctrlAlg has been started
 var intervalCtrl; // var for setInterval in global space
+
+var readAnalogPin0Flag = 1; // flag for reading the pin if the pot is driver
 
 // PID Algorithm variables
 var Kp = 0.55; // proportional factor
@@ -159,4 +167,5 @@ function stopControlAlgorithm (reasonOfStop) {
     board.analogWrite(3,0); // write 0 on pwm pin to stop the motor
     controlAlgorihtmStartedFlag = 0; // set flag that the algorithm has stopped
     sendStaticMsgViaSocket(reasonOfStop);
+    errSumAbs = 0;
 };
