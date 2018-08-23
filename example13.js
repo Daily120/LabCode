@@ -82,7 +82,8 @@ function sendValues (socket) {
     "KpE": KpE,
     "KiIedt": KiIedt,
     "KdDe_dt": KdDe_dt,
-    "errSumAbs": errSumAbs
+    "errSumAbs": errSumAbs,
+    "errAbs": errAbs
   });
 };
 
@@ -108,6 +109,7 @@ var KpE = 0; // multiplication of Kp x error
 var KiIedt = 0; // multiplication of Ki x integ. of error
 var KdDe_dt = 0; // multiplication of Kd x differential of err.
 var errSumAbs = 0; // sum of absolute errors as performance measure
+var errAbs = 0; // absolute error
 
 var globalparameters = {};
 
@@ -116,6 +118,7 @@ function controlAlgorithm (parameters) {
       case 1 : {
           pwm = parameters.pCoeff*(desiredValue-actualValue);
           err = desiredValue-actualValue;
+          errAbs = Math.abs(err);
           errSumAbs += Math.abs(err);
           //if((actualValue > 90 && actualValue < 900) || (desiredValue > 90 && desiredValue < 900)) {
               if(pwm > pwmLimit) {pwm = pwmLimit}; // to limit the value for pwm / positive
@@ -131,6 +134,7 @@ function controlAlgorithm (parameters) {
       case 2:
           err = desiredValue - actualValue; // error
           errSum += err; // sum of errors, like integral
+          errAbs = Math.abs(err);
           errSumAbs += Math.abs(err);
           dErr = err - lastErr; // difference of error
           KpE = parameters.Kp1*err;

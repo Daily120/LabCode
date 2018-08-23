@@ -15,6 +15,7 @@
         <div>
             <canvas id="pwmCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
             <canvas id="integralCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+            <canvas id="absErrorCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
         </div>
         <br>
         <div>
@@ -29,6 +30,7 @@
             Pulse duration in s: <input id="pulseDuration" value="7" size="5" />
             <button id="pulse" onClick="pulse()">Send pulse</button>
             <button id="pulsetimed" onClick="pulseTimed()">Send pulse Timed</button>
+            <button id="testFunction" onClick="startTestFunction()">Send test Func</button>
             <button id="buttonStop" onClick="stop()">STOP</button>
             <br>
         </div>
@@ -140,9 +142,12 @@
         var comparationGraph;
         var derivativeGraph;
         var performanceGraph;
+        var absErrorGraph;
         var pwm;
 
         var intervalPulseFunction;
+        var intervalTestFunction; // for setTimeout / setInterval
+        var timeCounter = 0;
         var performanceMeasure = 0;
 
         var divElement = document.getElementById("print1"); // variable for div object where the values will be printed (logged)
@@ -167,6 +172,7 @@
             integralGraph = new Graph("integralCanvas", 0, 200, -10000, 10000, ["red"], ["Integ(Err*dt)"], ["0", "200", "-10000", "10000"]);
             derivativeGraph = new Graph("derivativeCanvas", 0, 200, -150, 150, ["red"], ["dError/dt"], ["0", "200", "-150", "150"]);
             performanceGraph = new Graph("performanceCanvas", 0, 2000, 0, 500000, ["red"], ["Int(Abs(Error)dt)"], ["0", "2000", "0", "0.5M"]);
+            absErrorGraph = new Graph("absErrorCanvas", 0, 200, 0, 1000, ["red"], ["errAbs"], ["0", "200", "0", "1000"]);
         };
 
         socket.on("messageToClient", function (msg){
@@ -199,6 +205,8 @@
 
             performanceGraph.plot([value.errSumAbs]); // graph for performance measure
             performanceGraph.ctx.fillText(parseInt(value.errSumAbs),70,27);
+
+            absErrorGraph.plot([value.errAbs]);
 
             log(potValue1 + "|" + potValue2 + "|" + (potValue1 - potValue2) + "|" + (value.pwm).toFixed(0) ); // log to div
         });
@@ -233,7 +241,8 @@
         }
 
         function pulse() {
-            var positionInterval = 0;
+            var positionInterval = 300;
+            socket.emit("sendPosition", positionInterval); // at start we send position
 
             intervalPulseFunction = setInterval(function() {
                 if (positionInterval == 300) {
@@ -248,7 +257,36 @@
         function stop () {
             document.getElementById("divForStaticPrint").innerHTML = document.getElementById("divForStaticPrint").innerHTML + " | C = " + performanceMeasure;
             clearInterval(intervalPulseFunction);
+            clearInterval(intervalTestFunction);
             stopControlAlgorithm();
+        }
+
+        var functionValue = 0;
+        function testFunction() {
+            var initialValue = 256;
+            switch (timeCounter >= 0) {
+                case (timeCounter <= 1000):
+                    functionValue = initialValue + 0.5 * timeCounter;
+                    break;
+                case (timeCounter > 1000 && timeCounter <= 1500):
+                    functionValue = 256 + 500 + (-0.5 * (timeCounter - 1000)); // 500 = previous max value
+                    break;
+                case (timeCounter > 1500 && timeCounter <= 2000):
+                    functionValue = 506 + (0.5 * (timeCounter - 1500));
+                    break;
+                case (timeCounter > 2000 && timeCounter <= 3000):
+                    functionValue = 756 - 500 + 500 * Math.exp(-0.005 * (timeCounter - 2000));  // 756 - previous val; (756-220) - limit val
+            }
+            socket.emit("sendPosition", functionValue);
+            timeCounter++;
+        }
+
+        function startTestFunction () {
+            startControlAlgorithm(Number(document.getElementById("algorithmId").value));
+            timeCounter = 0;
+            intervalTestFunction = setInterval(function() {testFunction(), 10});
+            var pulseDuration = document.getElementById("pulseDuration").value;
+            setTimeout(function() {stop();}, pulseDuration * 1000);
         }
 
         function stopControlAlgorithm () {
