@@ -31,6 +31,7 @@
             Pulse duration in s: <input id="pulseDuration" value="7" size="5" />
             <button id="pulse" onClick="pulse()">Send pulse</button>
             <button id="pulse" onClick="testInputTimed()" style="width:160;height:24; background-color:#ff4c4c">Send Test Input</button>
+            <button id="step" onClick="testInputTimedFeedback();" style="width:160;height:24; background-color:#4cff4c">Send Step</button>
             <button id="pulsetimed" onClick="pulseTimed()">Send pulse Timed</button>
             <button id="testFunction" onClick="startTestFunction()">Send test Func</button>
             <button id="buttonStop" onClick="stop()">STOP</button>
@@ -168,8 +169,7 @@
         }
 
         function load() {
-            //potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["red", "green"], ["desired", "actual"], ["0", "200", "0", "1023"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
-            potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["green"], ["Actual"], ["0", "200", "0", "1023"]);
+            potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["red", "green"], ["desired", "actual"], ["0", "200", "0", "1023"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
             pwmGraph = new Graph("pwmCanvas", 0, 200, -254, 254, ["orange"], ["PWM"], ["0", "200", "-254", "254"]);
             comparationGraph = new Graph("comparationCanvas", 0, 200, -100, 100, ["red", "green", "blue"], ["KpE", "KiIedt", "KdDe_dt"], ["0", "200", "-100", "100"]);
             errorGraph = new Graph("errorCanvas", 0, 200, -1023, 1023, ["red"], ["Error"], ["0", "200", "-1023", "1023"]);
@@ -193,8 +193,7 @@
             potValue2 = value.actualValue;
             pwm = parseInt((value.pwm).toFixed(0), 10);
 
-            //potValuesGraph.plot([potValue1, potValue2]); // desired Vs actual graph
-            potValuesGraph.plot([potValue2]); // actual graph
+            potValuesGraph.plot([potValue1, potValue2]); // desired Vs actual graph
             pwmGraph.plot([pwm]); // plot pwm
             // draw centerline in pwmGraph
             pwmGraph.ctx.strokeStyle = "#add8e6";
@@ -222,7 +221,7 @@
             log("Disconnected from the server"); // we print status of disconn. to div
         });
 
-        function startControlAlgorithm (algorithmId) {
+        function startControlAlgorithm (algorithmId, withFeedback) {
             // first stop ctrlAlg, just in case
             stopControlAlgorithm ();
 
@@ -239,7 +238,7 @@
                     socket.emit("startControlAlgorithm", {"ctrlAlgNo": 2, "Kp1": Kp1, "Ki1": Ki1, "Kd1": Kd1}); // send also parameters
                     break;
                 case 3:
-                    socket.emit("startControlAlgorithm", {"ctrlAlgNo": 3}); // send value of coeff
+                    socket.emit("startControlAlgorithm", {"ctrlAlgNo": 3}, withFeedback); // send value of coeff
                     break;
             }
         }
@@ -262,6 +261,16 @@
                 }
                 socket.emit("sendPosition", positionInterval);
             }, 2000);
+        }
+
+        function inputStep() {
+            var input = 200;
+            socket.emit("sendPosition", input);
+
+            setTimeout(function() {
+                input = 820;
+                socket.emit("sendPosition", input);
+            }, 6000);
         }
 
         function stop () {
@@ -315,10 +324,18 @@
 
         function testInputTimed () {
             document.getElementById("algorithmId").value = 3;
-            startControlAlgorithm(Number(document.getElementById("algorithmId").value));
+            startControlAlgorithm(Number(document.getElementById("algorithmId").value), false);
             inputPulse(); // starting pulse function for INPUT
             var pulseDuration = document.getElementById("pulseDuration").value;
             setTimeout(function() {stop();}, pulseDuration * 1000); // 30000
+        }
+
+        function testInputTimedFeedback () {
+            document.getElementById("algorithmId").value = 3;
+            startControlAlgorithm(Number(document.getElementById("algorithmId").value), true);
+            inputStep(); // starting pulse function for INPUT
+            //var pulseDuration = document.getElementById("pulseDuration").value;
+            //setTimeout(function() {stop();}, pulseDuration * 1000); // 30000
         }
 
         function stopControlAlgorithm () {

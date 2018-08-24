@@ -42,8 +42,8 @@ io.sockets.on("connection", function(socket) {
       actualValue = value; // continuous read of pin A1
   });
 
-  socket.on("startControlAlgorithm", function(parameters){
-      startControlAlgorithm(parameters);
+  socket.on("startControlAlgorithm", function(parameters, withFeedback){
+      startControlAlgorithm(parameters, withFeedback);
   });
 
   socket.on("sendPosition", function(position) {
@@ -113,7 +113,7 @@ var errAbs = 0; // absolute error
 
 var globalparameters = {};
 
-function controlAlgorithm (parameters) {
+function controlAlgorithm (parameters, withFeedback) {
     switch (parameters.ctrlAlgNo) {
       case 1 : {
           pwm = parameters.pCoeff*(desiredValue-actualValue);
@@ -153,7 +153,7 @@ function controlAlgorithm (parameters) {
           }
           break;
       case 3:  // only input
-          pwm = desiredValue;
+          pwm = withFeedback ? desiredValue - actualValue : desiredValue;
           if(pwm > pwmLimit) {pwm = pwmLimit};
           if(pwm < -pwmLimit) {pwm = -pwmLimit};
           if (pwm > 0) {board.digitalWrite(2,0);}
@@ -163,11 +163,11 @@ function controlAlgorithm (parameters) {
     }
 };
 
-function startControlAlgorithm (parameters) {
+function startControlAlgorithm (parameters, withFeedback) {
     if (controlAlgorihtmStartedFlag == 0) {
         controlAlgorihtmStartedFlag = 1; // set flag that the algorithm has started
         globalparameters = parameters;
-        intervalCtrl = setInterval(() => controlAlgorithm(globalparameters), 30);
+        intervalCtrl = setInterval(() => controlAlgorithm(globalparameters, withFeedback), 30);
         sendStaticMsgViaSocket("Control algorithm " + parameters.ctrlAlgNo + " started | " + JSON.stringify(parameters));
         console.log("Control algorithm started");
     }
