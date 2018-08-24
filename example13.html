@@ -21,6 +21,7 @@
         <div>
             <canvas id="comparationCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
             <canvas id="derivativeCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+            <canvas id="testInputCanvas" width = "200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
         </div>
         <br>
         <div>
@@ -29,6 +30,7 @@
             <button id="sendPosition" onClick="sendPosition()">Send position</button>
             Pulse duration in s: <input id="pulseDuration" value="7" size="5" />
             <button id="pulse" onClick="pulse()">Send pulse</button>
+            <button id="pulse" onClick="testInputTimed()" style="width:160;height:24; background-color:#ff4c4c">Send Test Input</button>
             <button id="pulsetimed" onClick="pulseTimed()">Send pulse Timed</button>
             <button id="testFunction" onClick="startTestFunction()">Send test Func</button>
             <button id="buttonStop" onClick="stop()">STOP</button>
@@ -143,6 +145,7 @@
         var derivativeGraph;
         var performanceGraph;
         var absErrorGraph;
+        var testInputGraph;
         var pwm;
 
         var intervalPulseFunction;
@@ -165,7 +168,8 @@
         }
 
         function load() {
-            potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["red", "green"], ["desired", "actual"], ["0", "200", "0", "1023"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
+            //potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["red", "green"], ["desired", "actual"], ["0", "200", "0", "1023"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
+            potValuesGraph = new Graph("potValuesCanvas", 0, 200, 0, 1023, ["green"], ["Actual"], ["0", "200", "0", "1023"]);
             pwmGraph = new Graph("pwmCanvas", 0, 200, -254, 254, ["orange"], ["PWM"], ["0", "200", "-254", "254"]);
             comparationGraph = new Graph("comparationCanvas", 0, 200, -100, 100, ["red", "green", "blue"], ["KpE", "KiIedt", "KdDe_dt"], ["0", "200", "-100", "100"]);
             errorGraph = new Graph("errorCanvas", 0, 200, -1023, 1023, ["red"], ["Error"], ["0", "200", "-1023", "1023"]);
@@ -173,6 +177,7 @@
             derivativeGraph = new Graph("derivativeCanvas", 0, 200, -150, 150, ["red"], ["dError/dt"], ["0", "200", "-150", "150"]);
             performanceGraph = new Graph("performanceCanvas", 0, 2000, 0, 500000, ["red"], ["Int(Abs(Error)dt)"], ["0", "2000", "0", "0.5M"]);
             absErrorGraph = new Graph("absErrorCanvas", 0, 200, 0, 1000, ["red"], ["errAbs"], ["0", "200", "0", "1000"]);
+            testInputGraph = new Graph("testInputCanvas", 0, 200, 0, 1000, ["red"], ["errAbs"], ["0", "200", "0", "1000"]);
         };
 
         socket.on("messageToClient", function (msg){
@@ -188,7 +193,8 @@
             potValue2 = value.actualValue;
             pwm = parseInt((value.pwm).toFixed(0), 10);
 
-            potValuesGraph.plot([potValue1, potValue2]); // desired Vs actual graph
+            //potValuesGraph.plot([potValue1, potValue2]); // desired Vs actual graph
+            potValuesGraph.plot([potValue2]); // actual graph
             pwmGraph.plot([pwm]); // plot pwm
             // draw centerline in pwmGraph
             pwmGraph.ctx.strokeStyle = "#add8e6";
@@ -207,6 +213,7 @@
             performanceGraph.ctx.fillText(parseInt(value.errSumAbs),70,27);
 
             absErrorGraph.plot([value.errAbs]);
+            testInputGraph.plot([value.errAbs]);
 
             log(potValue1 + "|" + potValue2 + "|" + (potValue1 - potValue2) + "|" + (value.pwm).toFixed(0) ); // log to div
         });
@@ -230,6 +237,9 @@
                     break;
                 case 2:
                     socket.emit("startControlAlgorithm", {"ctrlAlgNo": 2, "Kp1": Kp1, "Ki1": Ki1, "Kd1": Kd1}); // send also parameters
+                    break;
+                case 3:
+                    socket.emit("startControlAlgorithm", {"ctrlAlgNo": 3}); // send value of coeff
                     break;
             }
         }
@@ -261,6 +271,20 @@
             stopControlAlgorithm();
         }
 
+        function inputPulse() {
+            var input = 0;
+            socket.emit("sendPosition", input);
+
+            intervalPulseFunction = setInterval(function() {
+                if (input == 50) {
+                    input = -50;
+                } else {
+                    input = 50;
+                }
+                socket.emit("sendPosition", input);
+            }, 400);
+        }
+
         var functionValue = 0;
         function testFunction() {
             var initialValue = 256;
@@ -287,6 +311,14 @@
             intervalTestFunction = setInterval(function() {testFunction(), 10});
             var pulseDuration = document.getElementById("pulseDuration").value;
             setTimeout(function() {stop();}, pulseDuration * 1000);
+        }
+
+        function testInputTimed () {
+            document.getElementById("algorithmId").value = 3;
+            startControlAlgorithm(Number(document.getElementById("algorithmId").value));
+            inputPulse(); // starting pulse function for INPUT
+            var pulseDuration = document.getElementById("pulseDuration").value;
+            setTimeout(function() {stop();}, pulseDuration * 1000); // 30000
         }
 
         function stopControlAlgorithm () {

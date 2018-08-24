@@ -152,6 +152,14 @@ function controlAlgorithm (parameters) {
             stopControlAlgorithm("Emergency Stop");
           }
           break;
+      case 3:  // only input
+          pwm = desiredValue;
+          if(pwm > pwmLimit) {pwm = pwmLimit};
+          if(pwm < -pwmLimit) {pwm = -pwmLimit};
+          if (pwm > 0) {board.digitalWrite(2,0);}
+          if (pwm < 0) {board.digitalWrite(2,1);}
+          board.analogWrite(3, Math.round(Math.abs(pwm)));
+          break;
     }
 };
 
