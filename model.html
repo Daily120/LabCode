@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Model for dinamyc systems</title>
+</head>
+
+<body onload="load()">
+    <div id="printLevel"></div>
+    <div id="printRate"></div>
+    <div id="printAuxiliary"></div>
+
+    <script type="text/javascript">
+        "use strict";
+
+        var printLevel = document.getElementById('printLevel');
+        var printRate = document.getElementById('printRate');
+        var printAuxiliary = document.getElementById('printAuxiliary');
+
+        var dt = 1;
+        var time = 0;
+        var stopTime = 10;
+
+        var levelArray = [];
+        var rateArray = [];
+        var auxiliaryArray = [];
+
+        class Level {
+            constructor(value) {
+                this.value = value;
+                levelArray.push(this);
+            }
+
+            updateFn() {};
+
+            update() {
+                this.value = this.value + dt * this.updateFn();
+            }
+        }
+
+        class Rate {
+            constructor(value) {
+                this.value = value;
+                rateArray.push(this);
+            }
+
+            updateFn() {};
+
+            update() {
+                this.value = this.updateFn();
+            }
+        }
+
+        class Auxiliary {
+            constructor(value) {
+                this.value = value;
+                auxiliaryArray.push(this);
+            }
+
+            updateFn() {};
+
+            update() {
+                this.value = this.updateFn();
+            }
+        }
+
+        //Model Definition
+        var state = new Level(10);
+        var rate = new Rate();
+        var a = 0.5;
+
+        printLevel.innerHTML += levelArray[0].value + " | ";
+
+        //Rate
+        rate.updateFn = () => a * state.value;
+
+        // Level
+        state.updateFn = () => rate.value;
+
+        //End of model definition
+
+        function init() {
+            auxiliaryArray.forEach(item => item.update);
+            rateArray.forEach(item => {
+                item.update();
+                printRate.innerHTML += item.value + " | ";
+            });
+
+            printAuxiliary.innerHTML += time + " | ";
+        }
+
+        function loop() {
+            time++;
+            printAuxiliary.innerHTML += time + " | ";
+
+            levelArray.forEach(item => item.update());
+            printLevel.innerHTML += levelArray[0].value + " | ";
+
+            auxiliaryArray.forEach(item => item.update());
+
+            rateArray.forEach(item => item.update());
+            printRate.innerHTML += rateArray[0].value + " | ";
+
+            var timer = setTimeout(loop, 300);
+
+            if (time >= stopTime) {
+                clearTimeout(timer)
+            };
+        }
+
+        function load() {
+            init();
+            loop();
+        }
+    </script>
+
+</body>
+
+</html>
