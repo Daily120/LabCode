@@ -75,26 +75,28 @@
         //End of model definition
 
         function init() {
+            var tableData = [];
+            tableData.push(time, state.value, 0);
+
             auxiliaryArray.forEach(item => item.update);
             rateArray.forEach(item => {
                 item.update();
             });
+
+            fillTableRow("dataTable", tableData);
         }
 
         function loop() {
             var tableData = [];
             time++;
-            tableData.push(time)
 
             levelArray.forEach(item => item.update());
-            tableData.push(levelArray[0].value)
-
             auxiliaryArray.forEach(item => item.update());
-
             rateArray.forEach(item => item.update());
-            tableData.push(rateArray[0].value)
 
             var timer = setTimeout(loop, 300);
+
+            tableData.push(time, levelArray[0].value, rateArray[0].value)
             fillTableRow("dataTable", tableData);
 
             if (time >= stopTime) {
