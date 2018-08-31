@@ -7,13 +7,17 @@
 </head>
 
 <body onload="load()">
+    <canvas id="rateCanvas" width="100" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+    <canvas id="levelCanvas" width="100" height="100" style="border: 1px dashed #00c3c3;"></canvas>
     <table border="1" id="dataTable">
         <th>Time</th><th>Level</th><th>Rate</th>
     </table>
 
+    <script src="Graph.js" charset="utf-8"></script>
     <script type="text/javascript">
         "use strict";
-
+        var rateGraph;
+        var levelGraph;
         var dt = 1;
         var time = 0;
         var stopTime = 10;
@@ -83,6 +87,8 @@
                 item.update();
             });
 
+            levelGraph.plot([state.value]);
+            rateGraph.plot([rate.value]);
             fillTableRow("dataTable", tableData);
         }
 
@@ -99,12 +105,16 @@
             tableData.push(time, levelArray[0].value, rateArray[0].value)
             fillTableRow("dataTable", tableData);
 
+            levelGraph.plot([state.value]);
+            rateGraph.plot([rate.value]);
             if (time >= stopTime) {
                 clearTimeout(timer)
             };
         }
 
         function load() {
+            rateGraph = new Graph("rateCanvas", 0, 10, 0, 300, ["red"], ["rate"], ["0", "10", "0", "300"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
+            levelGraph = new Graph("levelCanvas", 0, 10, 0, 600, ["green"], ["level"], ["0", "10", "0", "600"]);
             init();
             loop();
         }
