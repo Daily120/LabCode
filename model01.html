@@ -67,11 +67,11 @@
 
         //Model Definition
         var state = new Level(0);
-        var rate = new Rate(1);
+        var rate = new Rate(time);
         var a = 1;
 
         //Rate
-        rate.updateFn = () => a;
+        rate.updateFn = () => time;
 
         // Level
         state.updateFn = () => rate.value;
@@ -113,7 +113,7 @@
         }
 
         function load() {
-            rateGraph = new Graph("rateCanvas", 0, 10, 0, 5, ["red"], ["rate"], ["0", "10", "0", "5"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
+            rateGraph = new Graph("rateCanvas", 0, 10, 0, 10, ["red"], ["rate"], ["0", "10", "0", "10"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
             levelGraph = new Graph("levelCanvas", 0, 10, 0, 20, ["green"], ["level"], ["0", "10", "0", "20"]);
             init();
             loop();
