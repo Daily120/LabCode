@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Model for dinamyc systems</title>
+</head>
+
+<body onload="load()">
+    <canvas id="rateCanvas" width="100" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+    <canvas id="levelCanvas" width="100" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+    <table border="1" id="dataTable">
+        <th>Time</th><th>Level</th><th>Rate</th>
+    </table>
+
+    <script src="Graph.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        "use strict";
+        var rateGraph;
+        var levelGraph;
+        var dt = 1;
+        var time = 0;
+        var stopTime = 10;
+
+        var levelArray = [];
+        var rateArray = [];
+        var auxiliaryArray = [];
+
+        class Level {
+            constructor(value) {
+                this.value = value;
+                levelArray.push(this);
+            }
+
+            updateFn() {};
+
+            update() {
+                this.value = this.value + dt * this.updateFn();
+            }
+        }
+
+        class Rate {
+            constructor(value) {
+                this.value = value;
+                rateArray.push(this);
+            }
+
+            updateFn() {};
+
+            update() {
+                this.value = this.updateFn();
+            }
+        }
+
+        class Auxiliary {
+            constructor(value) {
+                this.value = value;
+                auxiliaryArray.push(this);
+            }
+
+            updateFn() {};
+
+            update() {
+                this.value = this.updateFn();
+            }
+        }
+
+        //Model Definition
+        var state = new Level(0);
+        var rate = new Rate(1);
+        var a = 1;
+
+        //Rate
+        rate.updateFn = () => a;
+
+        // Level
+        state.updateFn = () => rate.value;
+
+        //End of model definition
+
+        function init() {
+            var tableData = [];
+            tableData.push(time, state.value, rate.value);
+
+            auxiliaryArray.forEach(item => item.update);
+            rateArray.forEach(item => {
+                item.update();
+            });
+
+            levelGraph.plot([state.value]);
+            rateGraph.plot([rate.value]);
+            fillTableRow("dataTable", tableData);
+        }
+
+        function loop() {
+            var tableData = [];
+            time++;
+
+            levelArray.forEach(item => item.update());
+            auxiliaryArray.forEach(item => item.update());
+            rateArray.forEach(item => item.update());
+
+            var timer = setTimeout(loop, 300);
+
+            tableData.push(time, levelArray[0].value, rateArray[0].value)
+            fillTableRow("dataTable", tableData);
+
+            levelGraph.plot([state.value]);
+            rateGraph.plot([rate.value]);
+            if (time >= stopTime) {
+                clearTimeout(timer)
+            };
+        }
+
+        function load() {
+            rateGraph = new Graph("rateCanvas", 0, 10, 0, 5, ["red"], ["rate"], ["0", "10", "0", "5"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
+            levelGraph = new Graph("levelCanvas", 0, 10, 0, 20, ["green"], ["level"], ["0", "10", "0", "20"]);
+            init();
+            loop();
+        }
+
+        function fillTableRow(tableId, data) {
+            var table = document.getElementById(tableId);
+
+            var newRow = table.insertRow(table.rows.length);
+
+            data.forEach((item, index) => {
+                var newCell = newRow.insertCell(index);
+                var newText = document.createTextNode(item);
+                newCell.appendChild(newText);
+            })
+        }
+    </script>
+
+</body>
+
+</html>
