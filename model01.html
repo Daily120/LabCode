@@ -20,7 +20,7 @@
         var levelGraph;
         var dt = 1;
         var time = 0;
-        var stopTime = 10;
+        var stopTime = 20;
 
         var levelArray = [];
         var rateArray = [];
@@ -68,25 +68,40 @@
         //Model Definition
         var state = new Level(0);
         var rate = new Rate(time);
+        var aux = new Auxiliary();
         var a = 1;
 
         //Rate
-        rate.updateFn = () => time;
+        rate.updateFn = () => aux.value;
 
         // Level
         state.updateFn = () => rate.value;
+
+        //Auxiliary
+        aux.updateFn = ()=> pulseFunction(0, 8, 4) * 1 - 0.5;
+
+        // pulse function
+        function pulseFunction(first, period, duration) {
+            if (time*dt >= first) {
+                if(first + Math.floor(((time*dt)-first)/period)
+                    * period <= time*dt && time*dt < first + duration
+                    + Math.floor(((time*dt)-first)/period) * period ) {return 1}
+                else {return 0};
+            }
+            return 0;
+        }
 
         //End of model definition
 
         function init() {
             var tableData = [];
-            tableData.push(time, state.value, rate.value);
 
-            auxiliaryArray.forEach(item => item.update);
+            auxiliaryArray.forEach(item => item.update());
             rateArray.forEach(item => {
                 item.update();
             });
 
+            tableData.push(time, state.value, rate.value);
             levelGraph.plot([state.value]);
             rateGraph.plot([rate.value]);
             fillTableRow("dataTable", tableData);
@@ -113,8 +128,8 @@
         }
 
         function load() {
-            rateGraph = new Graph("rateCanvas", 0, 10, 0, 10, ["red"], ["rate"], ["0", "10", "0", "10"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
-            levelGraph = new Graph("levelCanvas", 0, 10, 0, 20, ["green"], ["level"], ["0", "10", "0", "20"]);
+            rateGraph = new Graph("rateCanvas", 0, 20, -1, 1, ["red"], ["rate"], ["0", "20", "-1", "1"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size
+            levelGraph = new Graph("levelCanvas", 0, 20, 0, 2, ["green"], ["level"], ["0", "20", "0", "2"]);
             init();
             loop();
         }
