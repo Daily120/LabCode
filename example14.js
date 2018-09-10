@@ -5,7 +5,7 @@ var firmata = require("firmata");
 
 console.log("Starting the code");
 
-var board = new firmata.Board("/dev/ttyACM0", function() {
+var board = new firmata.Board("COM3", function() {
     console.log("Connecting to Arduino");
     board.pinMode(1, board.MODES.ANALOG); // enable analog pin 1
     board.pinMode(2, board.MODES.OUTPUT); // direction of DC motor
