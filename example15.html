@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<meta charset=utf8>
+<html>
+
+<head>
+    <title>Example with potentiometer</title>
+</head>
+
+<body onload="load();">
+
+    <div>
+        <canvas id="pwmSimVSrealCanvas" width="200" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+        <canvas id="simCanvas" width="200" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+        <canvas id="pwmCanvas" width="200" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+        <canvas id="actualVSsimCanvas" width="200" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+        <canvas id="feedbackCanvas" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>
+    </div>
+    <div id="divForTime">Time: 0 | Timestep: 0</div>
+    <div id="divForTest">Test var: 0</div>
+    <p></p>
+    First set the position of the pointer on 220 (left)
+    <br>
+    Initial pos.: <input id="initReal" value=220 />
+    <button id="initReal" onClick="initReal()">Init real sys.</button>
+    <p></p>
+    pCoeff: <input id="pCoeff" value="0.7" size="5" />
+    <button id="buttonStartControlAlgorithm1" onClick="startControlAlgorithm1();">Start Ctrl Alg1</button>
+    <button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm();">Stop Ctrl Alg</button>
+    <p></p>
+    Set the parameters of simulation model:
+    <p></p>
+    b: <input id="var_b" value=0.01 />[N*m/(rad/s)] damping coefficient <br>
+    KT: <input id="var_KT" value=25 />[N*m/A] torque constant <br>
+    rho: <input id="var_rho" value=5 />gear ratio, e.g. 150:1 = 150 <br>
+    IL: <input id="var_IL" value=0.01 /> [kg*m^2] moment of inertia of our Load <br>
+    R: <input id="var_R" value=5 />[ohm] resistance of the motor <br>
+    Kb: <input id="var_Kb" value=0.011 />[V/(rad/s)] back EMF constant <br>
+    <button id="start" onClick="start()">Start Sim</button>
+    <button id="stop" onClick="stop()">Stop Sim</button>
+    <p></p>
+    <button id="startSimulationAndReal" onClick="startSimulationAndReal()">Start SimAndReal</button>
+    <p></p>
+    Final pos.: <input id="position" value=700 />
+    <button id="sendPosition" onClick="sendPosition()">Send position</button>
+    <button id="enablePot" onClick="enablePot()">enablePot</button>
+    <p></p>
+    Stop emit time: <input id="stopEmitTime" value=200 />
+    <button id="buttonStartServerEmit" onClick="startServerEmit();">Start SrvEmit</button>
+    <button id="buttonStopServerEmit" onClick="stopServerEmit();">Stop SrvEmit</button>
+    <p></p>
+
+    <div id="divForStaticPrint"> </div>
+    <p></p>
+
+    <div id="divForPrint"></div>
+
+    <br>
+
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+    <script type="text/javascript">
+        "use strict"; // enable classes
+
+        var potValue1 = 220; // value of the first potentiometer
+        var potValue2 = 0; // value of the second potentiometer
+
+        var pwmSimVSrealGraph; // variable for graph object
+        var pwmGraph; // variable for graph object
+        var simGraph;
+        var actualVSsimGraph;
+        var feedbackGraph;
+
+        var real2 = [220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220, 220,
+            220, 220, 220, 220, 220, 220, 220, 245, 315, 400, 483, 651, 730, 779, 803, 802, 767, 728, 697, 678, 675,
+            675, 679, 687, 691, 693, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694,
+            694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694,
+            694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 693, 694, 694, 694,
+            694, 694, 694, 694, 694, 694, 693, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694,
+            694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694,
+            694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694,
+            694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694,
+            694, 694, 694, 694, 694, 694, 694, 694, 694, 694, 694
+        ];
+
+        var pwm;
+
+        var pCoeff;
+
+        var controlAlgorithmStartedFlag = 0;
+        var simulationStartedFlag = 0;
+        var positionValue;
+
+        var stopEmitTime;
+        var initialPosition;
+
+
+        var timerVar; // variable for control of simulation run, i.e. "Timeout" loop
+
+        var arduinoAnalogReadResolution = 1024; // 0-5 volts on analogRead pin are converted to 1024=2¹⁰ valus (this is done each 0.0001s)
+        var inputVoltageRange = 5; // input voltage to analog pin is from 0-5 volts, range is 5V
+
+        function load() { // function that is started, when we open the page
+
+            pwmSimVSrealGraph = new Graph("pwmSimVSrealCanvas", 0, 200, 0, 1023, ["red", "green"], ["desired", "actual"], ["0", "200", "0", "1023"]); // arguments: Arg1: canvasId, Arg2: maxX, Arg3: maxY, Arg4: [vector of colors]; this determines the size of yValue matrix (if we state one color as eg. ["red"], we assume only one time series, ["red", "green", "blue"] -> three time series) 
+            simGraph = new Graph("simCanvas", 0, 200, 0, 1023, ["purple"], ["Sim"], ["0", "200", "0", "1023"]);
+            pwmGraph = new Graph("pwmCanvas", 0, 200, -254, 254, ["orange"], ["PWM"], ["0", "200", "-254", "254"]);
+            actualVSsimGraph = new Graph("actualVSsimCanvas", 0, 200, 0, 1023, ["red", "green", "purple"], ["desired", "actual", "sim"], ["0", "200", "0", "1023"]); 
+            actualVSsimGraph.ctx.font = "11px Arial";
+            actualVSsimGraph.ctx.fillText("active after pressing Start sim", 8, 50);
+            feedbackGraph = new Graph("feedbackCanvas", 0, 200, 0, 1023, ["red", "green", "blue"], ["desired", "actual", "sim"], ["0", "200", "0", "1023"]);
+
+            init();
+            stopEmitTime = document.getElementById("stopEmitTime").value;
+
+        };
+
+        var divForPrint = document.getElementById("divForPrint");
+        // var for printing messages
+        var numberOfLinesInLog = 100; // variable for the number of lines in log div
+        var counterOfLogs = 0; // variable for counting the logs
+
+        function log(msg) { // function to print messages to div with implemented scroll
+            var node = document.createElement("tr"); // we create variable node as tr (table row)
+            var textnode = document.createTextNode("@" + counterOfLogs + " | " + msg); // create elem. with text
+            node.appendChild(textnode); // add to "node", i.e. table row
+            divForPrint.insertBefore(node, divForPrint.childNodes[0]); // insert into variable divForPrint -> document.getElementById("divForPrint");
+            if (counterOfLogs > numberOfLinesInLog - 1) { // if there are more numbers as e.g. 10
+                divForPrint.removeChild(divForPrint.childNodes[numberOfLinesInLog]); // remove the oldest printout
+            }
+            counterOfLogs = counterOfLogs + 1; // increase the counter of logs
+        }
+
+        class Graph {
+            constructor(canvasId, minGraphX, maxGraphX, minGraphY, maxGraphY, color, legend, axisDescription) { // pri konstruktorju moramo podati ID platna, ki ga sicer ustvarimo v html-ju
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext("2d");
+                this.canvasWidth = this.canvas.width; // mind capital W at Width
+                this.canvasHeight = this.canvas.height; // mind capital H at Height
+                this.x = new Array(); // create new Array x
+                this.y = new Array();
+                this.rangeX = maxGraphX - minGraphX;
+                this.rangeY = maxGraphY - minGraphY;
+
+                // create y array (size) according to the color vector (could have multiple rows i.e. 2d)
+                for (var i = 0; i < color.length; i++) {
+                    this.y.push([]); // example of three row array init. would be: this.y = [[],[],[]];
+                }
+
+                this.minGraphX = minGraphX;
+                this.maxGraphX = maxGraphX;
+                this.minGraphY = minGraphY;
+                this.maxGraphY = maxGraphY;
+                this.color = color; // color of the graph
+
+                this.legend = legend;
+                this.axisDescription = axisDescription;
+
+                // fill x vector; vector y is filled in real-time
+                for (var i = 0; i < this.maxGraphX + 1; i++) {
+                    this.x[i] = i; // values for the x coordinate; 0, 1, 2, ...
+                }
+            }
+
+            addValueOrCutAndAdd(yValue) {
+                if (this.y[0].length == this.maxGraphX + 1) { // if canvas size is 10x10 we have 11x11 points (starting with 0 and ending with 10)
+                    for (var i = 0; i < yValue.length; i++) { // v zanki gremo po polju yInput in na mestu 0 eno vrednost odrežemo, na koncu pa eno mesto dodamo - zapišemo novo vrednost yInput
+                        this.y[i].splice(0, 1); // on the position 0 in the vector y we cut one value
+                        this.y[i][this.maxGraphX] = yValue[i]; // at the end of the array the new value is added
+                    }
+                } else {
+                    for (var i = 0; i < yValue.length; i++) { // z zanko gremo po vseh vrsticah za matrike y
+                        this.y[i].push(yValue[i]); // if the array is not yet full, we push the new value in the array / vrednost v oklepaju [] t.j. index je za ena večji; npr., če imamo eno vrednost je indeks [0], length pa 1
+                    }
+                }
+            }
+
+            plot(yValue) {
+                this.addValueOrCutAndAdd(yValue);
+                this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight); // clear the canvas
+
+                for (var i = 0; i < yValue.length; i++) { // zanka, ki gre po vrsticah y matrike
+                    this.ctx.strokeStyle = this.color[i]; // determine color
+                    this.ctx.beginPath(); // for the start of the line
+                    for (var j = 0; j < this.y[0].length; j++) {
+                        this.ctx.lineTo(this.x[j] / this.rangeX * this.canvasWidth, (this.canvasHeight - ((this.y[i]
+                            [j] - this.minGraphY) / this.rangeY) * this.canvasHeight)); // for y values we multiply with canas height, eg. 0.25 * 100 = 25
+                    }
+                    this.ctx.stroke();
+                }
+
+                // add legend
+                for (var i = 0; i < this.legend.length; i++) { // legend and color should be of the same size
+                    this.ctx.font = "11px Arial";
+                    this.ctx.fillText(this.legend[i], 49 + i * 54, 10);
+                    this.ctx.strokeStyle = this.color[i];
+                    this.ctx.beginPath(); // beginning of the short line for the legend
+                    this.ctx.lineTo(37 + i * 54, 6);
+                    this.ctx.lineTo(46 + i * 54, 6);
+                    this.ctx.stroke();
+                }
+
+                // add axis descritions
+                this.ctx.fillText("<-" + this.axisDescription[0] + "|" + this.axisDescription[1] + "->", 150, 95)
+                this.ctx.fillText(this.axisDescription[2], 5, 95);
+                this.ctx.fillText(this.axisDescription[3], 5, 11);
+
+            }
+        }
+
+        // ***************************************************************************
+
+        var dt = 0.02; // each 20ms we get a value from the server
+        var timeK = 0; // variable that represent counter of timesteps
+        var stopTime = 4 / dt;
+
+        var levelArray = []; // array for Levels
+        var rateArray = []; // array for Rates
+        var auxiliaryArray = []; // array of Auxiliary variables
+
+        class Level {
+
+            constructor(value) {
+                this.value = value; // determine initial value of Level
+                levelArray.push(this); // whole object is pushed to array together with functions updateFn and update
+            }
+
+            updateFn() {}; // for start, this is empty function as equation; later on, we will put the equation in here
+
+            update() { // member function
+                this.value = this.value + this.updateFn() * dt; // here dt is used - discrete Euler integration
+            }
+
+        }
+
+        class Rate {
+            constructor(value) {
+                this.value = value; // determine the value of the Rate
+                rateArray.push(this); // whole object is pushed to the array, together with function updateFn and update
+            }
+
+            updateFn() {}; // initially empty function
+
+            update() {
+                this.value = this.updateFn(); // here, the update function is different as at "Level", here dt is not considered.
+            }
+        }
+
+        class Auxiliary {
+            constructor(value) {
+                this.value = value; // determine inital value of auxiliary element
+                auxiliaryArray.push(this); // whole object is upshed to array, together with functions
+            }
+
+            updateFn() {}; // empty function for start; here the function will be written later on
+
+            update() {
+                this.value = this.updateFn();
+            }
+        }
+
+
+        // **************************************************************
+        // Definition of model START ************************************    
+        // **************************************************************    
+
+        // Order of the variables is important, they should be ordered in the array in such a manner, that
+        // the calcullation is possible. At the start, only Levels (states) are initialized and we can determine
+        // only those Auxiliaries and Rates, that are dependant on the Levels. The sequence is determined by
+        // connection to the Level element.
+        var Level1 = new Level(0);
+        var Level2 = new Level(220 / arduinoAnalogReadResolution * inputVoltageRange); // initial value e.g. 220/1024 * 5 = 1.07421875
+        var Rate1 = new Rate();
+        var Rate2 = new Rate();
+        var Aux0 = new Auxiliary();
+        var Aux1 = new Auxiliary();
+        var Aux2 = new Auxiliary();
+
+        var b = document.getElementById("var_b").value; // damping coefficient [N*m/(rad/s)]
+        var KT = document.getElementById("var_KT").value; // torque constant [N*m/A]
+        var rho = document.getElementById("var_rho").value; // gear ratio 150:1
+        var IL = document.getElementById("var_IL").value; // moment of inertia of our Load [kg*m^2]
+        var R = document.getElementById("var_R").value; // resistance of the motor [ohm]
+        var Kb = document.getElementById("var_Kb").value; // back EMF constant [V/(rad/s)]      
+
+        // step function    
+        function stepFunction(height, time) { // 5V = 1023
+            if (timeK * dt < time) {
+                return 220 / arduinoAnalogReadResolution * inputVoltageRange
+            } else {
+                return height
+            }; // 220/1024 * 5 = 1.07421875
+        }
+
+        // pulse function
+        function pulseFunction(first, period, duration) {
+            if (timeK * dt >= first) {
+                if (first + Math.floor(((timeK * dt) - first) / period) * period <= timeK * dt && timeK * dt <= first +
+                    duration + Math.floor(((timeK * dt) - first) / period) * period) {
+                    return 1
+                } else {
+                    return 0
+                };
+            }
+            return 0;
+        }
+
+        // Aux ~ definition of Auxiliary elements
+        Aux0.updateFn = () => stepFunction(700/arduinoAnalogReadResolution*inputVoltageRange, 0.5); // stepFunction for input [V] 3.41796875 = 700/1024 * 5
+        Aux1.updateFn = () => Aux0.value - Level2.value; // stepFunction for input [V]
+        Aux2.updateFn = () => Aux1.value - Kb * Level1.value;
+
+        // Rate
+        Rate1.updateFn = () => (((KT * rho) / IL) * (1 / R)) * Aux2.value - b * Level1.value;
+        Rate2.updateFn = () => (1 / rho) * Level1.value;
+
+
+        // Level    
+        Level1.updateFn = () => Rate1.value;
+        Level2.updateFn = () => Rate2.value;
+
+        // **************************************************************
+        // END definition of model **************************************    
+        // **************************************************************       
+
+        function init() {
+
+            auxiliaryArray.forEach(auxiliary => auxiliary.update());
+
+            rateArray.forEach(rate => rate.update());
+
+            log("Model init");
+
+            //graf1.draw(levelArray[1].value);
+            //graf2.draw(auxiliaryArray[0].value);
+
+            //printout1.innerHTML = "Time=" + (timeK*dt).toFixed(1);
+
+        }
+
+
+        // **************************************************************************
+
+        var socket = io.connect("localhost:8080"); // connect via socket
+
+        socket.on("messageToClient", function (msg) {
+            log(msg); // add msg to div
+        });
+
+        socket.on("staticMsgToClient", function (msg) { // when we recive static message
+            document.getElementById("divForStaticPrint").innerHTML = "Status: " + msg; // we print to div
+        });
+
+        socket.on("clientReadValues", function (value) {
+
+            //potValue1 = value.desiredValue;
+            potValue2 = value.actualValue;
+            pwm = parseInt((value.pwm).toFixed(0), 10);
+
+
+            // Model simulation part *************************************
+
+            if (simulationStartedFlag === 1) {
+
+                document.getElementById("divForTime").innerHTML = "Time: " + (timeK * dt).toFixed(1) +
+                    " | TimeStep: " + timeK; // we print to div
+
+
+                // starting control algorithm of real system
+                if (timeK * dt > 0.5 && controlAlgorithmStartedFlag == 0) {
+                    positionValue = document.getElementById("position").value; // read final (desired) position from GUI
+                    socket.emit("sendPosition", positionValue); // send to client
+                    startControlAlgorithm1();
+                    controlAlgorithmStartedFlag = 1;
+                }
+
+                if (timeK >= stopEmitTime) {
+                    stopServerEmit();
+                    stopControlAlgorithm();
+                }
+
+                // Model part ****************************************
+                timeK++;
+
+                levelArray.forEach(level => level.update());
+
+                auxiliaryArray.forEach(auxiliary => auxiliary.update());
+
+                rateArray.forEach(rate => rate.update());
+
+                document.getElementById("divForTest").innerHTML = "Var pos.: " + (levelArray[1].value * 512).toFixed(
+                    1); // we print to div
+
+                simGraph.plot([levelArray[1].value / inputVoltageRange * arduinoAnalogReadResolution]); // plot position -> convert Volts to 1024 -> (V/5)*1024
+                actualVSsimGraph.plot([potValue1, potValue2, levelArray[1].value / inputVoltageRange *
+                    arduinoAnalogReadResolution
+                ]); // plot position -> convert Volts to 1024 -> (V/5)*1024
+
+                // Model part End *************************************
+
+                log("timeK=" + timeK + "Aux=" + auxiliaryArray[0].value + "| L1=" + levelArray[1].value); //***
+
+                if (timeK * dt < 0.5) { // step function for desired value
+                    potValue1 = 220;
+                } else {
+                    potValue1 = 700;
+                }
+
+            }
+
+            pwmSimVSrealGraph.plot([potValue1, potValue2]); // desired Vs actual graph
+            pwmGraph.plot([pwm]); // plot pwm
+
+            //***log(value.desiredValue + "|" + value.actualValue + "|" + (value.desiredValue-value.actualValue) + "|" + (value.pwm).toFixed(0));
+        })
+
+        function loop() {
+
+            // Model simulation part *************************************
+
+            //if (simulationStartedFlag == 1) {
+
+            document.getElementById("divForTime").innerHTML = "Time: " + (timeK * dt).toFixed(1) + " | TimeStep: " +
+                timeK; // we print to div
+
+
+            // starting control algorithm of real system
+            //if(timeK * dt > 2 && controlAlgorithmStartedFlag == 0) {
+            //positionValue = document.getElementById("position").value; // read final (desired) position from GUI
+
+            //startControlAlgorithm1();
+            //controlAlgorithmStartedFlag = 1;
+            //}
+
+            // Model part ****************************************
+            timeK++;
+
+            levelArray.forEach(level => level.update());
+
+            auxiliaryArray.forEach(auxiliary => auxiliary.update());
+
+            rateArray.forEach(rate => rate.update());
+
+            document.getElementById("divForTest").innerHTML = "Var pos.: " + (levelArray[1].value * 512).toFixed(1); // we print to div
+
+            if (timeK * dt < 0.5) { // step function for desired value
+                potValue1 = 220;
+            } else {
+                potValue1 = 700;
+            }
+
+            simGraph.plot([levelArray[1].value / inputVoltageRange * arduinoAnalogReadResolution]); // plot position -> convert Volts to 1024 -> (V/5)*1024
+            actualVSsimGraph.plot([potValue1, 0, levelArray[1].value / 5 * 1024]); // plot position -> convert Volts to 1024 -> (V/5)*1024
+
+            // Model part End *************************************
+
+
+            //}
+
+            //graph1.plot([potValue1, potValue2]); // desired Vs actual graph
+
+            feedbackGraph.plot([potValue1, real2[timeK], levelArray[1].value / inputVoltageRange * arduinoAnalogReadResolution]); // plot position = Volts*512
+
+            log("timeK=" + timeK + "Aux=" + auxiliaryArray[0].value + "| L1=" + levelArray[1].value); //***
+
+            timerVar = setTimeout(loop, 20); // na 20ms izvajamo zanko oz. funkcijo "loop"
+
+            if (timeK >= stopTime) {
+                clearTimeout(timerVar)
+            };
+        }
+
+        function startControlAlgorithm1() {
+            stopControlAlgorithm(); // just in case, if it is not started
+            pCoeff = document.getElementById("pCoeff").value; // read the value of coeff from input field
+            socket.emit("startControlAlgorithm", {
+                "ctrlAlgNo": 1,
+                "pCoeff": pCoeff
+            }); // send value of coeff
+        }
+
+        function startServerEmit() {
+            stopEmitTime = document.getElementById("stopEmitTime").value; // read the stop time from GUI
+            socket.emit("startServerEmit"); // start getting the values from server
+        }
+
+        function startSimulationAndReal() {
+            stopEmitTime = document.getElementById("stopEmitTime").value; // read the stop time from GUI
+            pwmSimVSrealGraph.y = []; // empty y array in graph1
+            pwmGraph.y = []; // empty y array in graph2
+            pwmSimVSrealGraph.y.push([]);
+            pwmSimVSrealGraph.y.push([]);
+            pwmGraph.y.push([]);
+            initParameterValuesFromGUI(); // to get the parameter values from the GUI
+            simulationStartedFlag = 1; // flag to start simulating
+            socket.emit("startServerEmit"); // start getting the values from server -> server then as the response trigers function clientReadValues (abowe)
+        }
+
+        function stopServerEmit() {
+            socket.emit("stopServerEmit"); // start getting the values from server
+        }
+
+        function sendPosition() {
+            positionValue = document.getElementById("position").value;
+            socket.emit("sendPosition", positionValue);
+        };
+
+        function initReal() {
+            var initValueRealSys = document.getElementById("initReal").value;
+            socket.emit("sendPosition", initValueRealSys);
+            pCoeff = document.getElementById("pCoeff").value; // read the value of coeff from input field
+            socket.emit("startControlAlgorithm", {
+                "ctrlAlgNo": 1,
+                "pCoeff": pCoeff
+            }); // send value of coeff
+            socket.emit("startServerEmit");
+            //setTimeout(function(){stopControlAlgorithm(); socket.emit("stopServerEmit");timeK=0;}, 1000); // after 1s we stop control algorithm
+        };
+
+        function enablePot() {
+            socket.emit("enablePot"); // enable pot as the desired value source
+        };
+
+        function stopControlAlgorithm() {
+            socket.emit("stopControlAlgorithm");
+        }
+
+        function start() {
+            //init(); // to determine values for R(0) and A(0); L(0) is defined at start, i.e. initial conditions
+
+            b = document.getElementById("var_b").value; // damping coefficient [N*m/(rad/s)]
+            KT = document.getElementById("var_KT").value; // torque constant [N*m/A]
+            rho = document.getElementById("var_rho").value; // gear ratio 150:1
+            IL = document.getElementById("var_IL").value; // moment of inertia of our Load [kg*m^2]
+            R = document.getElementById("var_R").value; // resistance of the motor [ohm]
+            Kb = document.getElementById("var_Kb").value; // back EMF constant [V/(rad/s)]    
+
+            loop(); // next, the loop is executed
+        }
+
+        function initParameterValuesFromGUI() {
+            b = document.getElementById("var_b").value; // damping coefficient [N*m/(rad/s)]
+            KT = document.getElementById("var_KT").value; // torque constant [N*m/A]
+            rho = document.getElementById("var_rho").value; // gear ratio 150:1
+            IL = document.getElementById("var_IL").value; // moment of inertia of our Load [kg*m^2]
+            R = document.getElementById("var_R").value; // resistance of the motor [ohm]
+            Kb = document.getElementById("var_Kb").value; // back EMF constant [V/(rad/s)]    
+        }
+
+        function stop() {
+            if (timerVar) clearTimeout(timerVar);
+            timerVar = null;
+        }
+
+        socket.on("disconnect", function () {
+            log("Disconnected from the server"); // we print status of disconn. to div
+        });
+    </script>
+
+</body>
+
+</html>
