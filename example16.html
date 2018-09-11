@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<meta charset=utf8>
+<html>
+
+<head>
+    <title>Example with potentiometer</title>
+</head>
+
+<body onload="load();">
+
+    <div>
+        <canvas id="canvas1" width="200" height="100" style="border: 1px dashed #00c3c3;"></canvas>
+    </div>
+    <p></p>
+
+    <div id="divForPrint"></div>
+
+    <br>
+
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+    <script type="text/javascript">
+        var potValue1 = 0; // value of the first potentiometer
+        var potValue2 = 0; // value of the second potentiometer
+        var x1 = new Array(); // array for x1
+        var y1 = new Array(); // array for y1
+        var x2 = new Array(); // array for x2
+        var y2 = new Array(); // array for y2
+        var canvas1;
+        var ctx1;
+
+        function load() { // function that is started, when we open the page
+            canvas1 = document.getElementById("canvas1");
+            ctx1 = canvas1.getContext("2d");
+
+            // initialization of first graph
+            for (var i = 0; i < 200; i++) {
+                x1[i] = i; // for x values are 0, 1, 2, ...
+                y1[i] = 0; // for y values are 0
+            };
+
+            // initializaion of second graph
+            for (var i = 0; i < 200; i++) {
+                x2[i] = i; // x2 values are 0, 1, 2, ...
+                y2[i] = 0; // for y2 values are 0
+            };
+        };
+
+        var divForPrint = document.getElementById("divForPrint");
+        // var for printing messages
+        var numberOfLinesInLog = 20; // variable for the number of lines in log div
+        var counterOfLogs = 0; // variable for counting the logs
+
+        function log(msg) { // function to print messages to div with implemented scroll
+            var node = document.createElement("tr"); // we create variable node as tr (table row)
+            var textnode = document.createTextNode(counterOfLogs + " | " + msg); // create elem. with text
+            node.appendChild(textnode); // add to "node", i.e. table row
+            divForPrint.insertBefore(node, divForPrint.childNodes[0]); // insert into variable divForPrint -> document.getElementById("divForPrint");
+            if (counterOfLogs > numberOfLinesInLog - 1) { // if there are more numbers as e.g. 10
+                divForPrint.removeChild(divForPrint.childNodes[numberOfLinesInLog]); // remove the oldest printout
+            }
+            counterOfLogs = counterOfLogs + 1; // increase the counter of logs
+        }
+
+        var socket = io.connect("localhost:8080"); // connect via socket
+
+        socket.on("messageToClient", function (msg) {
+            log(msg); // add msg to div
+        });
+
+        socket.on("clientReadValues", function (value) {
+            potValue1 = value.desiredValue;
+            potValue2 = value.actualValue;
+
+            // Draw graph No1 *****************************************
+
+            ctx1.lineWidth = "1";
+            ctx1.strokeStyle = "#ff0000";
+            ctx1.clearRect(0, 0, canvas1.width, canvas1.height); // clear the canvas
+            ctx1.beginPath(); // to start drawing new line
+            y1.splice(0, 1); // on the position 0 in the field y1 we erase one value
+            y1[199] = potValue1; // new value is added at the end
+            for (var i = 0; i < 200; i++) {
+                ctx1.lineTo(x1[i], (100 - (y1[i] / 1023) * 100)); // 0,0 x,y coordinate is in upper left corner
+            };
+            ctx1.stroke(); // to draw the line
+            // End of draw graph No1 ***********************************
+
+            // Draw graph No2 *****************************************
+
+            ctx1.strokeStyle = "#00ff00"; // green line
+            ctx1.beginPath(); // to start drawing new line
+            y2.splice(0, 1); // on the position 0 in the field y2 we erase one value
+            y2[199] = potValue2; // new value is added at the end
+            for (var i = 0; i < 200; i++) {
+                ctx1.lineTo(x2[i], (100 - (y2[i] / 1023) * 100)); // 0,0 x,y coordinate is in upper left corner
+            };
+            ctx1.stroke(); // to draw the line
+            // End of draw graph No2 ***********************************
+
+
+            log(value.desiredValue + "|" + value.actualValue);
+        })
+
+        socket.on("disconnect", function () {
+            log("Disconnected from the server"); // we print status of disconn. to div
+        });
+    </script>
+
+</body>
+
+</html>
